@@ -3,15 +3,19 @@ import * as d3 from 'd3';
 import departementsJSON from '../assets/departments.json'
 import '../styles/index.scss';
 
+// declare the type of the imported JSON
 interface GeoJSON {
     type: string;
     features: any[];
     bbox: number[];
 }
 
+// enforce type checking on the imported JSON
 const departements: GeoJSON = departementsJSON;
 
 console.log(departements);
+
+// most of this code comes from https://www.datavis.fr/d3js/map-firststep
 
 const width = 975;
 const height = 610;
