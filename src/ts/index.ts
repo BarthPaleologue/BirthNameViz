@@ -1,23 +1,9 @@
 import * as d3 from 'd3';
 import { loadCSV } from './loadCSV';
+import { departements } from './loadMapData'
 
-import departementsJSON from '../assets/departments.json'
 import birthNamesCSV from '../assets/dpt2020.csv';
 import '../styles/index.scss';
-
-
-
-// declare the type of the imported JSON
-interface GeoJSON {
-    type: string;
-    features: any[];
-    bbox: number[];
-}
-
-// enforce type checking on the imported JSON
-const departements: GeoJSON = departementsJSON;
-
-console.log(departements);
 
 // most of this code comes from https://www.datavis.fr/d3js/map-firststep
 
@@ -68,5 +54,7 @@ deps.selectAll("path")
 
 
 const data = await loadCSV(birthNamesCSV);
+
+document.querySelector("#loader")?.remove();
 
 console.log(data[0]);
