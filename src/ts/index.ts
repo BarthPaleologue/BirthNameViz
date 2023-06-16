@@ -1,7 +1,13 @@
 import * as d3 from 'd3';
 
 import departementsJSON from '../assets/departments.json'
+import birthNamesCSV from '../assets/dpt2020.csv';
 import '../styles/index.scss';
+
+// load csv
+d3.csv(birthNamesCSV).then(function (data) {
+    console.log(data);
+});
 
 // declare the type of the imported JSON
 interface GeoJSON {
