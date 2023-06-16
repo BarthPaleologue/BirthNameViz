@@ -1,6 +1,9 @@
 # BirthNameViz
 
-Strength and Weaknesses of our Visualizations
+## Links for json maps
+
+https://github.com/gregoiredavid/france-geojson
+## Strength and Weaknesses of our Visualizations
 Par Mickaël Adriao, Manon Heffernan, Adrien Coutelle, Daniel Zhou et Barthélemy Paléologue
 
 A - 
