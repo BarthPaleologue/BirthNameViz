@@ -37,9 +37,26 @@ const svg = d3.select('body').append("svg")
 const deps = svg.append("g")
     .attr("id", "departements");
 
+interface Departement {
+    properties: {
+        CODE_CHF: string;
+        CODE_DEPT: string;
+        CODE_REG: string;
+        ID_GEOFLA: number;
+        NOM_CHF: string;
+        NOM_DEPT: string;
+        NOM_REGION: string;
+        X_CENTROID: number;
+        X_CHF_LIEU: number;
+        Y_CENTROID: number;
+        Y_CHF_LIEU: number;
+    }
+}
+
 deps.selectAll("path")
     .data(departements.features)
     .enter()
     .append("path")
-    .attr("d", path as any)
-    .attr("class", "departement")
+    .attr("d", path)
+    .attr("class", function (d: Departement) { return `${d.properties.NOM_DEPT} departement`; })
+    .attr("id", function (d: Departement) { return "d" + d.properties.CODE_DEPT; })
