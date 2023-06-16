@@ -4,10 +4,17 @@ import departementsJSON from '../assets/departments.json'
 import birthNamesCSV from '../assets/dpt2020.csv';
 import '../styles/index.scss';
 
-// load csv
-d3.csv(birthNamesCSV).then(function (data) {
-    console.log(data);
-});
+async function loadCSV() {
+    const rawData = await d3.text(birthNamesCSV)
+    // replace ; by ,
+    const rawDataCSV = rawData.replace(/;/g, ",");
+
+    // parse the CSV
+    const parsedCSV = d3.csvParse(rawDataCSV);
+    console.log(parsedCSV);
+
+    return parsedCSV;
+}
 
 // declare the type of the imported JSON
 interface GeoJSON {
@@ -66,3 +73,7 @@ deps.selectAll("path")
     .attr("d", path)
     .attr("class", function (d: Departement) { return `${d.properties.NOM_DEPT} departement`; })
     .attr("id", function (d: Departement) { return "d" + d.properties.CODE_DEPT; })
+
+
+
+const data = await loadCSV();
