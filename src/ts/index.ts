@@ -1,13 +1,11 @@
 import * as d3 from 'd3';
+import { loadCSV } from './loadCSV';
 
 import departementsJSON from '../assets/departments.json'
 import birthNamesCSV from '../assets/dpt2020.csv';
 import '../styles/index.scss';
 
-// load csv
-d3.csv(birthNamesCSV).then(function (data) {
-    console.log(data);
-});
+
 
 // declare the type of the imported JSON
 interface GeoJSON {
@@ -66,3 +64,9 @@ deps.selectAll("path")
     .attr("d", path)
     .attr("class", function (d: Departement) { return `${d.properties.NOM_DEPT} departement`; })
     .attr("id", function (d: Departement) { return "d" + d.properties.CODE_DEPT; })
+
+
+
+const data = await loadCSV(birthNamesCSV);
+
+console.log(data[0]);
