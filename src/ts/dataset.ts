@@ -1,6 +1,13 @@
 import * as d3 from "d3";
 import { Region } from "./region";
 
+// adds the dataset to the window object so it can be accessed from the console
+declare global {
+    interface Window {
+        dataset: Dataset;
+    }
+}
+
 /**
  * Represents a row in the raw CSV file
  * @private
@@ -83,11 +90,20 @@ export class Dataset {
             } as DataRow;
         });
 
-        console.log(parsedCSV);
+        // remove rows with NaN values
+        const filteredCSV = parsedCSV.filter((row) => {
+            return !isNaN(row.annais) && !isNaN(row.dpt) && !isNaN(row.nombre) && !isNaN(row.sexe);
+        });
 
-        this.csv = parsedCSV;
+        const NaNPercentage = (parsedCSV.length - filteredCSV.length) / parsedCSV.length * 100;
 
-        return parsedCSV;
+        console.log(`Droped ${parsedCSV.length - filteredCSV.length} rows with NaN values (${NaNPercentage.toFixed(2)}%)`);
+
+        console.log(filteredCSV);
+
+        this.csv = filteredCSV;
+
+        return filteredCSV;
     }
 
     /**

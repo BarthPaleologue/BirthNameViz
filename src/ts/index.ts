@@ -36,6 +36,8 @@ deps.selectAll("path")
     .attr("id", function (d: Departement) { return "d" + d.properties.CODE_DEPT; })
 
 const dataset = new Dataset();
+window.dataset = dataset;
+
 await dataset.loadCSV(birthNamesCSV);
 
 console.log(dataset.filterByYearRange(1990, 2015).filterByDepartement(75).filterByName("Daniel").toArray());
