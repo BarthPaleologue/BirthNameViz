@@ -38,7 +38,9 @@ deps.selectAll("path")
 const dataset = new Dataset();
 await dataset.loadCSV(birthNamesCSV);
 
-const data = dataset.getCSV();
+console.log(dataset.filterByYearRange(1990, 2015).filterByDepartement(75).filterByName("Daniel").toArray());
+
+const data = dataset.toArray();
 
 document.querySelector("#loader")?.remove();
 
