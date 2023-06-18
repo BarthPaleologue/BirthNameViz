@@ -40,9 +40,9 @@ await dataset.loadCSV(birthNamesCSV);
 
 console.log(dataset.filterByYearRange(1990, 2015).filterByDepartement(75).filterByName("Daniel").toArray());
 
-console.log(dataset.filterByYearRange(1990, 2015).filterByName("Manon").sumByYear());
+console.log(dataset.filterByYearRange(1990, 2015).filterByName("Manon").aggregateByYear());
 
-console.log(dataset.filterByYearRange(1990, 2015).filterByName("Claude").filterBySex(Sex.Female).sumByYear());
+console.log(dataset.filterByYearRange(1990, 2015).filterByName("Claude").filterBySex(Sex.Female).aggregateByYear());
 
 console.log(dataset.getBestYearFor("Adrien"));
 
