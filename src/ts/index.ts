@@ -3,7 +3,7 @@ import { Departement, departements } from './loadMapData'
 
 import birthNamesCSV from '../assets/dpt2020.csv';
 import '../styles/index.scss';
-import { Dataset } from './dataset';
+import { Dataset, Sex } from './dataset';
 
 // most of this code comes from https://www.datavis.fr/d3js/map-firststep
 
@@ -39,6 +39,12 @@ const dataset = new Dataset();
 await dataset.loadCSV(birthNamesCSV);
 
 console.log(dataset.filterByYearRange(1990, 2015).filterByDepartement(75).filterByName("Daniel").toArray());
+
+console.log(dataset.filterByYearRange(1990, 2015).filterByName("Manon").sumByYear());
+
+console.log(dataset.filterByYearRange(1990, 2015).filterByName("Claude").filterBySex(Sex.Female).sumByYear());
+
+console.log(dataset.getBestYearFor("Adrien"));
 
 const data = dataset.toArray();
 

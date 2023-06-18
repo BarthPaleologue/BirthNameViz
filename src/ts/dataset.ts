@@ -13,7 +13,14 @@ export interface DataRow {
     dpt: number;
     nombre: number;
     preusuel: string;
-    sexe: number;
+    sexe: Sex;
+}
+
+export interface GeoSummedDataRow {
+    annais: number;
+    preusuel: string;
+    nombre: number;
+    sexe: Sex;
 }
 
 export enum Sex {
@@ -109,4 +116,46 @@ export class Dataset {
 
         return new Dataset(filteredCSV);
     }
+
+    sumByYear(): GeoSummedDataRow[] {
+        if (this.csv === null) throw new Error("CSV was not loaded when sumNamesByDepartement was called");
+
+        const summedCSV = this.csv.reduce((accumulator, currentValue) => {
+            const index = accumulator.findIndex((element) => {
+                return element.annais === currentValue.annais && element.preusuel === currentValue.preusuel && element.sexe === currentValue.sexe;
+            });
+
+            if (index === -1) {
+                let newElement = {
+                    annais: currentValue.annais,
+                    preusuel: currentValue.preusuel,
+                    nombre: currentValue.nombre,
+                    sexe: currentValue.sexe
+                };
+                accumulator.push(newElement);
+            } else {
+                accumulator[index].nombre += currentValue.nombre;
+            }
+
+            return accumulator;
+        }, [] as GeoSummedDataRow[]);
+
+        return summedCSV;
+    }
+
+    getBestYearFor(name: string): number {
+        if (this.csv === null) throw new Error("CSV was not loaded when getBestYearFor was called");
+
+        const dataset = this.filterByName(name).sumByYear();
+
+        let bestYear = dataset[0];
+        for (let i = 1; i < dataset.length; i++) {
+            if (dataset[i].nombre > bestYear.nombre) {
+                bestYear = dataset[i];
+            }
+        }
+
+        return bestYear.annais;
+    }
+
 }
