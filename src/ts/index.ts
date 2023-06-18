@@ -1,9 +1,9 @@
 import * as d3 from 'd3';
-import { loadCSV } from './loadCSV';
 import { Departement, departements } from './loadMapData'
 
 import birthNamesCSV from '../assets/dpt2020.csv';
 import '../styles/index.scss';
+import { Dataset } from './dataset';
 
 // most of this code comes from https://www.datavis.fr/d3js/map-firststep
 
@@ -35,9 +35,10 @@ deps.selectAll("path")
     .attr("class", function (d: Departement) { return `${d.properties.NOM_DEPT} departement`; })
     .attr("id", function (d: Departement) { return "d" + d.properties.CODE_DEPT; })
 
+const dataset = new Dataset();
+await dataset.loadCSV(birthNamesCSV);
 
-
-const data = await loadCSV(birthNamesCSV);
+const data = dataset.getCSV();
 
 document.querySelector("#loader")?.remove();
 
