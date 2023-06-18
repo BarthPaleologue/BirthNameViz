@@ -19,16 +19,11 @@ export interface DataRow {
 export class Dataset {
     private csv: DataRow[] | null = null;
 
-    constructor() { }
-
     async loadCSV(csvPath: string): Promise<DataRow[]> {
-        const rawData = await d3.text(csvPath)
-
-        // parse the CSV
-        const parsedCSV = d3.csvParse(rawData) as RawDataRow[];
+        const rawData = await d3.csv(csvPath) as RawDataRow[];
 
         // cast nombre to number on each row
-        const finalCSV = parsedCSV.map((row) => {
+        const parsedCSV = rawData.map((row) => {
             return {
                 annais: parseInt(row.annais),
                 dpt: parseInt(row.dpt),
@@ -38,11 +33,11 @@ export class Dataset {
             } as DataRow;
         });
 
-        console.log(finalCSV);
+        console.log(parsedCSV);
 
-        this.csv = finalCSV;
+        this.csv = parsedCSV;
 
-        return finalCSV;
+        return parsedCSV;
     }
 
     getCSV(): DataRow[] {
