@@ -42,7 +42,7 @@ console.log(dataset.filterByYearRange(1990, 2015).filterByDepartement(75).filter
 
 console.log(dataset.filterByYearRange(1990, 2015).filterByName("Manon").aggregateByYear());
 
-console.log(dataset.filterByYearRange(1990, 2015).filterByName("Claude").filterBySex(Sex.Female).aggregateByYear());
+console.log(dataset.filterByYearRange(1960, 2015).filterByName("Claude").filterBySex(Sex.Female).aggregateByYear());
 
 console.log(dataset.getBestYearFor("Adrien"));
 

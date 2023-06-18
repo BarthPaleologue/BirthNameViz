@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { Region } from "./region";
 
 /**
  * Represents a row in the raw CSV file
@@ -32,6 +33,17 @@ export interface YearAggregatedDataRow {
     preusuel: string;
     nombre: number;
     sexe: Sex;
+}
+
+/**
+ * Represents a row in the CSV file when the data are agregated by region
+ */
+export interface RegionAggregatedDataRow {
+    annais: number;
+    preusuel: string;
+    nombre: number;
+    sexe: number;
+    region: Region;
 }
 
 /**
@@ -137,7 +149,7 @@ export class Dataset {
     }
 
     /**
-     * Returns a new Dataset with only the rows that match the given names
+     * Returns a new Dataset with only the rows that match the given names **(the names are automatically uppercased)**
      * @param names The names to include
      * @returns A new Dataset with only the rows that match the given names
      */
@@ -156,7 +168,7 @@ export class Dataset {
     }
 
     /**
-     * Returns a new Dataset with only the rows that match the given name
+     * Returns a new Dataset with only the rows that match the given name **(the name is automatically uppercased)**
      * @param name The name to include
      * @returns A new Dataset with only the rows that match the given name
      */
@@ -170,7 +182,7 @@ export class Dataset {
      * @returns A new dataset filtered by sex
      */
     filterBySex(sex: Sex): Dataset {
-        if(this.csv === null) throw new Error("CSV was not loaded when getDatasetForSex was called");
+        if (this.csv === null) throw new Error("CSV was not loaded when getDatasetForSex was called");
 
         const filteredCSV = this.csv.filter((row) => {
             return row.sexe === sex
