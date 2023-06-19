@@ -1,8 +1,15 @@
 # BirthNameViz
 
+[![NodeJS with Webpack](https://github.com/BarthPaleologue/BirthNameViz/actions/workflows/webpack.yml/badge.svg)](https://github.com/BarthPaleologue/BirthNameViz/actions/workflows/webpack.yml)
+[![ESLint Check](https://github.com/BarthPaleologue/BirthNameViz/actions/workflows/main.yml/badge.svg)](https://github.com/BarthPaleologue/BirthNameViz/actions/workflows/main.yml)
+
+This is the repository to our project of IGR204. The goal is to create interactable visualizations around the names of french babies between 1900 and 2019.
+
 ## Links for json maps
 
 https://github.com/gregoiredavid/france-geojson
+
+
 ## Strength and Weaknesses of our Visualizations
 Par Mickaël Adriao, Manon Heffernan, Adrien Coutelle, Daniel Zhou et Barthélemy Paléologue
 

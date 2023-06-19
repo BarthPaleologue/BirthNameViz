@@ -1,23 +1,9 @@
 import * as d3 from 'd3';
-import { loadCSV } from './loadCSV';
+import { Departement, departements } from './loadMapData'
 
-import departementsJSON from '../assets/departments.json'
 import birthNamesCSV from '../assets/dpt2020.csv';
 import '../styles/index.scss';
-
-
-
-// declare the type of the imported JSON
-interface GeoJSON {
-    type: string;
-    features: any[];
-    bbox: number[];
-}
-
-// enforce type checking on the imported JSON
-const departements: GeoJSON = departementsJSON;
-
-console.log(departements);
+import { Dataset, Sex } from './dataset';
 
 // most of this code comes from https://www.datavis.fr/d3js/map-firststep
 
@@ -41,22 +27,6 @@ const svg = d3.select('body').append("svg")
 const deps = svg.append("g")
     .attr("id", "departements");
 
-interface Departement {
-    properties: {
-        CODE_CHF: string;
-        CODE_DEPT: string;
-        CODE_REG: string;
-        ID_GEOFLA: number;
-        NOM_CHF: string;
-        NOM_DEPT: string;
-        NOM_REGION: string;
-        X_CENTROID: number;
-        X_CHF_LIEU: number;
-        Y_CENTROID: number;
-        Y_CHF_LIEU: number;
-    }
-}
-
 deps.selectAll("path")
     .data(departements.features)
     .enter()
@@ -65,8 +35,21 @@ deps.selectAll("path")
     .attr("class", function (d: Departement) { return `${d.properties.NOM_DEPT} departement`; })
     .attr("id", function (d: Departement) { return "d" + d.properties.CODE_DEPT; })
 
+const dataset = new Dataset();
+window.dataset = dataset;
 
+await dataset.loadCSV(birthNamesCSV);
 
-const data = await loadCSV(birthNamesCSV);
+console.log(dataset.filterByYearRange(1990, 2015).filterByDepartement(75).filterByName("Daniel").toArray());
+
+console.log(dataset.filterByYearRange(1990, 2015).filterByName("Manon").aggregateByYear());
+
+console.log(dataset.filterByYearRange(1960, 2015).filterByName("Claude").filterBySex(Sex.Female).aggregateByYear());
+
+console.log(dataset.getBestYearFor("Adrien"));
+
+const data = dataset.toArray();
+
+document.querySelector("#loader")?.remove();
 
 console.log(data[0]);
