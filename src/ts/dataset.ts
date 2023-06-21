@@ -1,13 +1,6 @@
 import * as d3 from "d3";
 import { RegionName, getRegionFromDepartement } from "./region";
 
-// adds the dataset to the window object so it can be accessed from the console
-declare global {
-    interface Window {
-        dataset: Dataset;
-    }
-}
-
 /**
  * Represents a row in the raw CSV file
  * @private
