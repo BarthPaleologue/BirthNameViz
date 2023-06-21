@@ -1,5 +1,4 @@
 import * as d3 from 'd3';
-import { Departement, departements } from './loadMapData'
 
 import birthNamesCSV from '../assets/dpt2020.csv';
 import '../styles/index.scss';
@@ -20,6 +19,7 @@ const dataset = new Dataset();
 window.dataset = dataset;
 
 await dataset.loadCSV(birthNamesCSV);
+dataset.optimize();
 
 console.log(dataset.filterByYearRange(1990, 2015).filterByDepartement(75).filterByName("Daniel").toArray());
 
@@ -35,4 +35,4 @@ document.querySelector("#loader")?.remove();
 
 console.log(data[0]);
 
-drawMap(svg);
+drawMap(svg, dataset);

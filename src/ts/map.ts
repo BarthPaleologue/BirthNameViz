@@ -1,7 +1,9 @@
 import * as d3 from "d3";
-import { Departement, departements } from "./loadMapData";
+import { Region, regions } from "./loadRegionMapData";
+import { Dataset } from "./dataset";
+import { parseRegionName } from "./region";
 
-export function drawMap(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>) {
+export function drawMap(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>, dataset: Dataset) {
 
     const path = d3.geoPath();
 
@@ -13,95 +15,106 @@ export function drawMap(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, a
         .center([2.454071, 46.279229])
         .scale(4000)
         .translate([width / 2, height / 2]);
-    
+
     path.projection(projection);
 
-    const departementMap = svg.append("g")
-    .attr("id", "departements");
+    const regionMap = svg.append("g");
 
-let focusedDepartement: Departement | null = null;
-let currentScale = 1;
+    let focusedRegion: Region | null = null;
+    let currentScale = 1;
 
-departementMap.selectAll("path")
-    .data(departements.features)
-    .enter()
-    .append("g")
-    .append("path")
-    .attr("d", path)
-    .attr("class", function (d: Departement) { return `${d.properties.NOM_DEPT} departement`; })
-    .attr("id", function (d: Departement) { return "d" + d.properties.CODE_DEPT; })
-    .on("mouseover", function (d: Departement) {
-        d3.select(this)
-    })
-    .on("mouseout", function (d: Departement) {
-        d3.select(this)
-    })
-    .on("wheel", function (e: WheelEvent, d: Departement) {
-        // zoom on the mouse position
-        const mouse = d3.pointer(e, this);
-        
-        currentScale += e.deltaY * -0.002;
+    regionMap.selectAll("path")
+        .data(regions.features)
+        .enter()
+        .append("g")
+        .append("path")
+        .attr("d", path)
+        .attr("class", function (d: Region) { return `${d.properties.nom} departement`; })
+        .attr("id", function (d: Region) { return "d" + d.properties.code; })
+        .on("mouseover", function (d: Region) {
+            d3.select(this)
+        })
+        .on("mouseout", function (d: Region) {
+            d3.select(this)
+        })
+        .on("wheel", function (e: WheelEvent, d: Region) {
+            // zoom on the mouse position
+            const mouse = d3.pointer(e, this);
 
-        currentScale = Math.max(1, Math.min(8, currentScale));
+            currentScale += e.deltaY * -0.002;
 
-        const scale = currentScale;
-        const translate = [width / 2 - scale * mouse[0], height / 2 - scale * mouse[1]];
+            currentScale = Math.max(1, Math.min(8, currentScale));
 
-        departementMap.transition()
-            .duration(750)
-            .style("stroke-width", 1.5 / scale + "px")
-            .attr("transform", "translate(" + translate + ") scale(" + scale + ")");
+            const scale = currentScale;
+            const translate = [width / 2 - scale * mouse[0], height / 2 - scale * mouse[1]];
 
-        e.preventDefault();
-    })
-    .on("click", function (e: PointerEvent, d: Departement) {
-        if (focusedDepartement === d) {
-            focusedDepartement = null;
-
-            // zoom out
-            departementMap.transition()
-                .duration(750)
-                .style("stroke-width", "1.5px")
-                .attr("transform", "");
-
-            departementMap.selectAll(".departement-label")
-                .transition()
-                .duration(750)
-                .attr("font-size", "12px");
-        } else {
-            focusedDepartement = d;
-
-            // zoom on the clicked departement
-            const bounds = path.bounds(d as any);
-            const dx = bounds[1][0] - bounds[0][0];
-            const dy = bounds[1][1] - bounds[0][1];
-            const x = (bounds[0][0] + bounds[1][0]) / 2;
-            const y = (bounds[0][1] + bounds[1][1]) / 2;
-            const scale = Math.max(1, Math.min(8, 0.9 / Math.max(dx / width, dy / height)));
-            const translate = [width / 2 - scale * x, height / 2 - scale * y];
-
-            departementMap.transition()
+            regionMap.transition()
                 .duration(750)
                 .style("stroke-width", 1.5 / scale + "px")
                 .attr("transform", "translate(" + translate + ") scale(" + scale + ")");
 
+            e.preventDefault();
+        })
+        .on("click", function (e: PointerEvent, d: Region) {
+            if (focusedRegion === d) {
+                focusedRegion = null;
 
-            departementMap.selectAll(".departement-label")
-                .transition()
-                .duration(750)
-                .attr("font-size", "5px");
-        }
-    });
+                // zoom out
+                regionMap.transition()
+                    .duration(750)
+                    .style("stroke-width", "1.5px")
+                    .attr("transform", "");
 
-// add text containing departement number
-departementMap.selectAll("g")
-    .data(departements.features)
-    .append("text")
-    .attr("x", function (d: Departement) { return path.centroid(d as any)[0]; })
-    .attr("y", function (d: Departement) { return path.centroid(d as any)[1]; })
-    .attr("text-anchor", "middle")
-    .attr("font-size", "12px")
-    .attr("fill", "black")
-    .attr("class", "departement-label")
-    .text(function (d: Departement) { return d.properties.CODE_DEPT; });
+                regionMap.selectAll(".departement-label")
+                    .transition()
+                    .duration(750)
+                    .attr("font-size", "12px");
+            } else {
+                focusedRegion = d;
+
+                // zoom on the clicked departement
+                const bounds = path.bounds(d as any);
+                const dx = bounds[1][0] - bounds[0][0];
+                const dy = bounds[1][1] - bounds[0][1];
+                const x = (bounds[0][0] + bounds[1][0]) / 2;
+                const y = (bounds[0][1] + bounds[1][1]) / 2;
+                const scale = Math.max(1, Math.min(8, 0.9 / Math.max(dx / width, dy / height)));
+                const translate = [width / 2 - scale * x, height / 2 - scale * y];
+
+                regionMap.transition()
+                    .duration(750)
+                    .style("stroke-width", 1.5 / scale + "px")
+                    .attr("transform", "translate(" + translate + ") scale(" + scale + ")");
+
+
+                regionMap.selectAll(".departement-label")
+                    .transition()
+                    .duration(750)
+                    .attr("font-size", "5px");
+            }
+        });
+
+    // add title containing departement name
+    /*regionMap.selectAll("g")
+        .data(regions.features)
+        .append("title")
+        .text(function (d: Region) {
+            return dataset.filterByRegion(parseRegionName(d.properties.nom)).toArray()[0].preusuel;
+        });*/
+
+
+    // add text containing names
+    const regionSVG = regionMap.selectAll("g").data(regions.features)
+        .append("text")
+        .attr("x", function (d: Region) { return path.centroid(d as any)[0]; })
+        .attr("y", function (d: Region) { return path.centroid(d as any)[1] + 12; })
+        .attr("text-anchor", "middle")
+        .attr("font-size", "12px")
+        .attr("fill", "black")
+        .attr("class", "departement-label")
+        .html(function (d: Region) {
+            const [bestMaleName, bestFemaleName] = dataset.filterByYearRange(2000, 2015).filterByRegion(parseRegionName(d.properties.nom)).getBestMaleAndFemaleName();
+            
+            return `<tspan x="${path.centroid(d as any)[0]}" dy="-1.2em">${bestMaleName}</tspan><tspan x="${path.centroid(d as any)[0]}" dy="1.2em">${bestFemaleName}</tspan>`;
+        });
 }

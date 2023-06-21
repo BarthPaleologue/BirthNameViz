@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { Region } from "./region";
+import { RegionName, getRegionFromDepartement } from "./region";
 
 // adds the dataset to the window object so it can be accessed from the console
 declare global {
@@ -27,6 +27,7 @@ interface RawDataRow {
 export interface DataRow {
     annais: number;
     dpt: number;
+    region: RegionName;
     nombre: number;
     preusuel: string;
     sexe: Sex;
@@ -50,7 +51,7 @@ export interface RegionAggregatedDataRow {
     preusuel: string;
     nombre: number;
     sexe: number;
-    region: Region;
+    region: RegionName;
 }
 
 /**
@@ -67,6 +68,11 @@ export enum Sex {
 export class Dataset {
     private csv: DataRow[] | null = null;
 
+    private filteredByDepartements: Map<number, DataRow[]> | null = null;
+    private filteredBySex: Map<Sex, DataRow[]> | null = null;
+    private filteredByRegion: Map<RegionName, DataRow[]> | null = null;
+    private filteredByYear: Map<number, DataRow[]> | null = null;
+
     constructor(data: DataRow[] | null = null) {
         this.csv = data;
     }
@@ -77,33 +83,76 @@ export class Dataset {
      * @returns The loaded CSV file
      */
     async loadCSV(csvPath: string): Promise<DataRow[]> {
-        const rawData = await d3.csv(csvPath) as RawDataRow[];
+        const rawCSV = await d3.csv(csvPath) as RawDataRow[];
+
+        // remove rows with NaN values
+        const filteredNaNCSV = rawCSV.filter((row) => {
+            return !isNaN(+row.annais) && !isNaN(+row.dpt) && !isNaN(+row.nombre) && !isNaN(+row.sexe);
+        });
+
+        const NaNPercentage = (rawCSV.length - filteredNaNCSV.length) / rawCSV.length * 100;
+
+        console.log(`Droped ${rawCSV.length - filteredNaNCSV.length} rows with NaN values (${NaNPercentage.toFixed(2)}%)`);
+
+        // remove rows with preusuel === "_PRENOMS_RARES"
+        const filteredRareCSV = filteredNaNCSV.filter((row) => {
+            return row.preusuel !== "_PRENOMS_RARES";
+        });
+
+        const rarePercentage = (rawCSV.length - filteredRareCSV.length) / rawCSV.length * 100;
+
+        console.log(`Droped ${rawCSV.length - filteredRareCSV.length} rows with preusuel === "_PRENOMS_RARES" (${rarePercentage.toFixed(2)}%)`);
 
         // cast nombre to number on each row
-        const parsedCSV = rawData.map((row) => {
+        const parsedCSV: DataRow[] = filteredRareCSV.map((row) => {
             return {
                 annais: parseInt(row.annais),
                 dpt: parseInt(row.dpt),
+                region: getRegionFromDepartement(parseInt(row.dpt)),
                 nombre: parseInt(row.nombre),
                 preusuel: row.preusuel,
                 sexe: parseInt(row.sexe)
-            } as DataRow;
+            };
         });
 
-        // remove rows with NaN values
-        const filteredCSV = parsedCSV.filter((row) => {
-            return !isNaN(row.annais) && !isNaN(row.dpt) && !isNaN(row.nombre) && !isNaN(row.sexe);
-        });
+        console.log(parsedCSV);
 
-        const NaNPercentage = (parsedCSV.length - filteredCSV.length) / parsedCSV.length * 100;
+        this.csv = parsedCSV;
 
-        console.log(`Droped ${parsedCSV.length - filteredCSV.length} rows with NaN values (${NaNPercentage.toFixed(2)}%)`);
+        return parsedCSV;
+    }
 
-        console.log(filteredCSV);
+    optimize() {
+        if (this.csv === null) throw new Error("CSV was not loaded when optimize was called");
+        else console.log("Optimizing dataset");
 
-        this.csv = filteredCSV;
+        this.filteredByDepartements = new Map();
+        this.filteredBySex = new Map();
+        this.filteredByRegion = new Map();
+        this.filteredByYear = new Map();
+        for (const row of this.csv) {
+            if (!this.filteredByDepartements.has(row.dpt)) {
+                this.filteredByDepartements.set(row.dpt, []);
+            }
+            this.filteredByDepartements.get(row.dpt)?.push(row);
 
-        return filteredCSV;
+            if (!this.filteredBySex.has(row.sexe)) {
+                this.filteredBySex.set(row.sexe, []);
+            }
+            this.filteredBySex.get(row.sexe)?.push(row);
+
+            if (!this.filteredByRegion.has(row.region)) {
+                this.filteredByRegion.set(row.region, []);
+            }
+            this.filteredByRegion.get(row.region)?.push(row);
+
+            if (!this.filteredByYear.has(row.annais)) {
+                this.filteredByYear.set(row.annais, []);
+            }
+            this.filteredByYear.get(row.annais)?.push(row);
+        }
+
+        console.log("Optimization done");
     }
 
     /**
@@ -123,6 +172,14 @@ export class Dataset {
      */
     filterByYearRange(startYear: number, endYear: number): Dataset {
         if (this.csv === null) throw new Error("CSV was not loaded when getDatasetForYearRange was called");
+
+        if (this.filteredByYear !== null) {
+            const filteredCSV = [];
+            for (let i = startYear; i <= endYear; i++) {
+                filteredCSV.push(...(this.filteredByYear.get(i) ?? []));
+            }
+            return new Dataset(filteredCSV);
+        }
 
         const filteredCSV = this.csv.filter((row) => {
             return row.annais >= startYear && row.annais <= endYear;
@@ -148,6 +205,14 @@ export class Dataset {
     filterByDepartements(departements: number[]): Dataset {
         if (this.csv === null) throw new Error("CSV was not loaded when getDatasetForDepartements was called");
 
+        if (this.filteredByDepartements !== null) {
+            const filteredCSV = departements.map((departement) => {
+                return this.filteredByDepartements?.get(departement) ?? [];
+            }).flat();
+
+            return new Dataset(filteredCSV);
+        }
+
         const filteredCSV = this.csv.filter((row) => {
             return departements.includes(row.dpt);
         });
@@ -162,6 +227,19 @@ export class Dataset {
      */
     filterByDepartement(departement: number): Dataset {
         return this.filterByDepartements([departement]);
+    }
+
+    filterByRegion(region: RegionName): Dataset {
+        if(this.csv === null) throw new Error("CSV was not loaded when filterByRegion was called");
+        if(this.filteredByRegion !== null) {
+            const filteredCSV = this.filteredByRegion.get(region) ?? [];
+            return new Dataset(filteredCSV);
+        } 
+
+        const filteredCSV = this.csv.filter((row) => {
+            return row.region === region;
+        });
+        return new Dataset(filteredCSV);
     }
 
     /**
@@ -212,7 +290,7 @@ export class Dataset {
      * @returns A new Dataset with the rows summed by year
      */
     aggregateByYear(): YearAggregatedDataRow[] {
-        if (this.csv === null) throw new Error("CSV was not loaded when sumNamesByDepartement was called");
+        if (this.csv === null) throw new Error("CSV was not loaded when aggregateByYear was called");
 
         const aggregatedCSV = this.csv.reduce((accumulator, currentValue) => {
             const index = accumulator.findIndex((element) => {
@@ -237,6 +315,7 @@ export class Dataset {
         return aggregatedCSV;
     }
 
+
     /**
      * Returns the year with the most births for the given name
      * @param name The name to search for
@@ -255,6 +334,50 @@ export class Dataset {
         }
 
         return bestYear.annais;
+    }
+
+    sortByPopularity(): Dataset {
+        if (this.csv === null) throw new Error("CSV was not loaded when sortByPopularity was called");
+
+        const sortedCSV = this.csv.sort((a, b) => {
+            return b.nombre - a.nombre;
+        });
+
+        return new Dataset(sortedCSV);
+    }
+
+    getBestMaleAndFemaleName(): [string, string] {
+        if (this.csv === null) throw new Error("CSV was not loaded when getBestMaleAndFemaleNameInYearRange was called");
+
+        const dataset = this.aggregateByYear();
+
+        let bestMaleName = dataset[0].preusuel;
+        let bestFemaleName = dataset[0].preusuel;
+
+        let bestMaleNameCount = dataset[0].nombre;
+        let bestFemaleNameCount = dataset[0].nombre;
+
+        for (let i = 1; i < dataset.length; i++) {
+            const row = dataset[i];
+            switch (row.sexe) {
+                case Sex.Male:
+                    if (row.nombre > bestMaleNameCount) {
+                        bestMaleName = row.preusuel;
+                        bestMaleNameCount = row.nombre;
+                    }
+                    break;
+                case Sex.Female:
+                    if (row.nombre > bestFemaleNameCount) {
+                        bestFemaleName = row.preusuel;
+                        bestFemaleNameCount = row.nombre;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return [bestMaleName, bestFemaleName];
     }
 
     /**
