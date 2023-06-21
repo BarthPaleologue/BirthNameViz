@@ -23,38 +23,20 @@ export function drawMap(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, a
     let focusedRegion: Region | null = null;
     let currentScale = 1;
 
-    regionMap.selectAll("path")
-        .data(regions.features)
-        .enter()
+    const regionContainers = regionMap.selectAll(".regionContainer")
+        .data(regions.features);
+
+    // Enter
+    const newRegionContainers = regionContainers.enter()
         .append("g")
+        .attr("class", "regionContainer");
+
+    // Update
+    regionContainers.merge(newRegionContainers as any)
         .append("path")
         .attr("d", path)
-        .attr("class", function (d: Region) { return `${d.properties.nom} region`; })
-        .attr("id", function (d: Region) { return "d" + d.properties.code; })
-        .on("mouseover", function (d: Region) {
-            d3.select(this)
-        })
-        .on("mouseout", function (d: Region) {
-            d3.select(this)
-        })
-        .on("wheel", function (e: WheelEvent, d: Region) {
-            // zoom on the mouse position
-            const mouse = d3.pointer(e, this);
-
-            currentScale += e.deltaY * -0.002;
-
-            currentScale = Math.max(1, Math.min(8, currentScale));
-
-            const scale = currentScale;
-            const translate = [width / 2 - scale * mouse[0], height / 2 - scale * mouse[1]];
-
-            regionMap.transition()
-                .duration(750)
-                .style("stroke-width", 1.5 / scale + "px")
-                .attr("transform", "translate(" + translate + ") scale(" + scale + ")");
-
-            e.preventDefault();
-        })
+        .attr("class", (d: Region) => `${d.properties.nom} region`)
+        .attr("id", (d: Region) => "d" + d.properties.code)
         .on("click", function (e: PointerEvent, d: Region) {
             if (focusedRegion === d) {
                 focusedRegion = null;
@@ -94,19 +76,24 @@ export function drawMap(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, a
             }
         });
 
+    // Exit
+    regionContainers.exit().remove();
+
+    // precompute centroids
+    const centroids = regions.features.map((d: Region) => ({
+        x: path.centroid(d as any)[0],
+        y: path.centroid(d as any)[1]
+    }));      
 
     // add text containing names
-    regionMap.selectAll("g").data(regions.features)
+    regionMap.selectAll(".regionContainer").data(regions.features)
         .append("text")
-        .attr("x", function (d: Region) { return path.centroid(d as any)[0]; })
-        .attr("y", function (d: Region) { return path.centroid(d as any)[1] + 12; })
-        .attr("text-anchor", "middle")
-        .attr("font-size", "12px")
-        .attr("fill", "black")
+        .attr("x", (d: Region, i: number) => centroids[i].x)
+        .attr("y", (d: Region, i: number) => centroids[i].y + 12)
         .attr("class", "region-label")
-        .html(function (d: Region) {
+        .html(function (d: Region, i: number) {
             const [bestMaleName, bestFemaleName] = dataset.filterByYearRange(2000, 2015).filterByRegion(parseRegionName(d.properties.nom)).getBestMaleAndFemaleName();
-            
-            return `<tspan x="${path.centroid(d as any)[0]}" dy="-1.2em">${bestMaleName}</tspan><tspan x="${path.centroid(d as any)[0]}" dy="1.2em">${bestFemaleName}</tspan>`;
+
+            return `<tspan x="${centroids[i].x}" dy="-1.2em">${bestMaleName}</tspan><tspan x="${centroids[i].x}" dy="1.2em">${bestFemaleName}</tspan>`;
         });
 }

@@ -68,7 +68,6 @@ export enum Sex {
 export class Dataset {
     private csv: DataRow[] | null = null;
 
-    private filteredByDepartements: Map<number, DataRow[]> | null = null;
     private filteredBySex: Map<Sex, DataRow[]> | null = null;
     private filteredByRegion: Map<RegionName, DataRow[]> | null = null;
     private filteredByYear: Map<number, DataRow[]> | null = null;
@@ -83,7 +82,11 @@ export class Dataset {
      * @returns The loaded CSV file
      */
     async loadCSV(csvPath: string): Promise<DataRow[]> {
+        console.log(`Loading CSV...`);
+
         const rawCSV = await d3.csv(csvPath) as RawDataRow[];
+
+        console.log(`Loaded ${rawCSV.length} rows from ${csvPath}`);
 
         // remove rows with NaN values
         const filteredNaNCSV = rawCSV.filter((row) => {
@@ -115,8 +118,6 @@ export class Dataset {
             };
         });
 
-        console.log(parsedCSV);
-
         this.csv = parsedCSV;
 
         return parsedCSV;
@@ -126,16 +127,10 @@ export class Dataset {
         if (this.csv === null) throw new Error("CSV was not loaded when optimize was called");
         else console.log("Optimizing dataset");
 
-        this.filteredByDepartements = new Map();
         this.filteredBySex = new Map();
         this.filteredByRegion = new Map();
         this.filteredByYear = new Map();
         for (const row of this.csv) {
-            if (!this.filteredByDepartements.has(row.dpt)) {
-                this.filteredByDepartements.set(row.dpt, []);
-            }
-            this.filteredByDepartements.get(row.dpt)?.push(row);
-
             if (!this.filteredBySex.has(row.sexe)) {
                 this.filteredBySex.set(row.sexe, []);
             }
@@ -204,14 +199,6 @@ export class Dataset {
      */
     filterByDepartements(departements: number[]): Dataset {
         if (this.csv === null) throw new Error("CSV was not loaded when getDatasetForDepartements was called");
-
-        if (this.filteredByDepartements !== null) {
-            const filteredCSV = departements.map((departement) => {
-                return this.filteredByDepartements?.get(departement) ?? [];
-            }).flat();
-
-            return new Dataset(filteredCSV);
-        }
 
         const filteredCSV = this.csv.filter((row) => {
             return departements.includes(row.dpt);
