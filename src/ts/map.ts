@@ -21,7 +21,6 @@ export function drawMap(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, a
     const regionMap = svg.append("g");
 
     let focusedRegion: Region | null = null;
-    let currentScale = 1;
 
     const regionContainers = regionMap.selectAll(".regionContainer")
         .data(regions.features);
@@ -76,24 +75,25 @@ export function drawMap(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, a
             }
         });
 
-    // Exit
-    regionContainers.exit().remove();
-
     // precompute centroids
     const centroids = regions.features.map((d: Region) => ({
         x: path.centroid(d as any)[0],
         y: path.centroid(d as any)[1]
-    }));      
+    }));
 
     // add text containing names
-    regionMap.selectAll(".regionContainer").data(regions.features)
+    regionContainers.merge(newRegionContainers as any)
         .append("text")
         .attr("x", (d: Region, i: number) => centroids[i].x)
         .attr("y", (d: Region, i: number) => centroids[i].y + 12)
         .attr("class", "region-label")
         .html(function (d: Region, i: number) {
-            const [bestMaleName, bestFemaleName] = dataset.filterByYearRange(2000, 2015).filterByRegion(parseRegionName(d.properties.nom)).getBestMaleAndFemaleName();
+            const filteredDataset = dataset.filterByRegionAndYearRange(parseRegionName(d.properties.nom), 1960, 2018);
+            const [bestMaleName, bestFemaleName] = filteredDataset.getBestMaleAndFemaleName();
 
             return `<tspan x="${centroids[i].x}" dy="-1.2em">${bestMaleName}</tspan><tspan x="${centroids[i].x}" dy="1.2em">${bestFemaleName}</tspan>`;
         });
+
+    // Exit
+    regionContainers.exit().remove();
 }

@@ -72,6 +72,9 @@ export class Dataset {
     private filteredByRegion: Map<RegionName, DataRow[]> | null = null;
     private filteredByYear: Map<number, DataRow[]> | null = null;
 
+    // This is big brain time
+    private filteredByRegionByYear: Map<RegionName, Map<number, DataRow[]>> | null = null;
+
     constructor(data: DataRow[] | null = null) {
         this.csv = data;
     }
@@ -128,6 +131,9 @@ export class Dataset {
         this.filteredBySex = new Map();
         this.filteredByRegion = new Map();
         this.filteredByYear = new Map();
+
+        this.filteredByRegionByYear = new Map();
+
         for (const row of this.csv) {
             if (!this.filteredBySex.has(row.sexe)) {
                 this.filteredBySex.set(row.sexe, []);
@@ -143,6 +149,14 @@ export class Dataset {
                 this.filteredByYear.set(row.annais, []);
             }
             this.filteredByYear.get(row.annais)?.push(row);
+
+            if (!this.filteredByRegionByYear.has(row.region)) {
+                this.filteredByRegionByYear.set(row.region, new Map());
+            }
+            if (!this.filteredByRegionByYear.get(row.region)?.has(row.annais)) {
+                this.filteredByRegionByYear.get(row.region)?.set(row.annais, []);
+            }
+            this.filteredByRegionByYear.get(row.region)?.get(row.annais)?.push(row);
         }
 
         console.log("Optimization done");
@@ -225,6 +239,20 @@ export class Dataset {
             return row.region === region;
         });
         return new Dataset(filteredCSV);
+    }
+
+    filterByRegionAndYearRange(region: RegionName, startYear: number, endYear: number): Dataset {
+        if (this.csv === null) throw new Error("CSV was not loaded when filterByRegionAndYearRange was called");
+
+        if (this.filteredByRegionByYear !== null) {
+            const filteredCSV = [];
+            for (let i = startYear; i <= endYear; i++) {
+                filteredCSV.push(...(this.filteredByRegionByYear.get(region)?.get(i) ?? []));
+            }
+            return new Dataset(filteredCSV);
+        }
+
+        return this.filterByRegion(region).filterByYearRange(startYear, endYear);
     }
 
     /**
@@ -334,33 +362,41 @@ export class Dataset {
     getBestMaleAndFemaleName(): [string, string] {
         if (this.csv === null) throw new Error("CSV was not loaded when getBestMaleAndFemaleNameInYearRange was called");
 
-        const dataset = this.aggregateByYear();
+        const bestMaleNames = new Map<string, number>();
+        const bestFemaleNames = new Map<string, number>();
 
-        let bestMaleName = dataset[0].preusuel;
-        let bestFemaleName = dataset[0].preusuel;
-
-        let bestMaleNameCount = dataset[0].nombre;
-        let bestFemaleNameCount = dataset[0].nombre;
-
-        for (let i = 1; i < dataset.length; i++) {
-            const row = dataset[i];
+        for (const row of this.csv) {
             switch (row.sexe) {
                 case Sex.Male:
-                    if (row.nombre > bestMaleNameCount) {
-                        bestMaleName = row.preusuel;
-                        bestMaleNameCount = row.nombre;
+                    if (!bestMaleNames.has(row.preusuel)) {
+                        bestMaleNames.set(row.preusuel, 0);
                     }
+                    bestMaleNames.set(row.preusuel, bestMaleNames.get(row.preusuel)! + row.nombre);
                     break;
                 case Sex.Female:
-                    if (row.nombre > bestFemaleNameCount) {
-                        bestFemaleName = row.preusuel;
-                        bestFemaleNameCount = row.nombre;
+                    if (!bestFemaleNames.has(row.preusuel)) {
+                        bestFemaleNames.set(row.preusuel, 0);
                     }
-                    break;
-                default:
+                    bestFemaleNames.set(row.preusuel, bestFemaleNames.get(row.preusuel)! + row.nombre);
                     break;
             }
         }
+
+        const bestMaleName = [...bestMaleNames.entries()].reduce((acc, cur) => {
+            if (cur[1] > acc[1]) {
+                return cur;
+            } else {
+                return acc;
+            }
+        })[0];
+
+        const bestFemaleName = [...bestFemaleNames.entries()].reduce((acc, cur) => {
+            if (cur[1] > acc[1]) {
+                return cur;
+            } else {
+                return acc;
+            }
+        })[0];
 
         return [bestMaleName, bestFemaleName];
     }
