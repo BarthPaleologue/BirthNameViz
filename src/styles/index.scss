@@ -1,4 +1,4 @@
-.departement {
+.region {
     fill: rgb(8, 150, 155);
     stroke: rgb(255, 255, 255);
     transition: .2s;
@@ -10,7 +10,7 @@
     }
 }
 
-.departement-label {
+.region-label {
     pointer-events: none;
     user-select: none;
     font-family: sans-serif;

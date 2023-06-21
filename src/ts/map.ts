@@ -29,7 +29,7 @@ export function drawMap(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, a
         .append("g")
         .append("path")
         .attr("d", path)
-        .attr("class", function (d: Region) { return `${d.properties.nom} departement`; })
+        .attr("class", function (d: Region) { return `${d.properties.nom} region`; })
         .attr("id", function (d: Region) { return "d" + d.properties.code; })
         .on("mouseover", function (d: Region) {
             d3.select(this)
@@ -65,14 +65,14 @@ export function drawMap(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, a
                     .style("stroke-width", "1.5px")
                     .attr("transform", "");
 
-                regionMap.selectAll(".departement-label")
+                regionMap.selectAll(".region-label")
                     .transition()
                     .duration(750)
                     .attr("font-size", "12px");
             } else {
                 focusedRegion = d;
 
-                // zoom on the clicked departement
+                // zoom on the clicked region
                 const bounds = path.bounds(d as any);
                 const dx = bounds[1][0] - bounds[0][0];
                 const dy = bounds[1][1] - bounds[0][1];
@@ -87,31 +87,23 @@ export function drawMap(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, a
                     .attr("transform", "translate(" + translate + ") scale(" + scale + ")");
 
 
-                regionMap.selectAll(".departement-label")
+                regionMap.selectAll(".region-label")
                     .transition()
                     .duration(750)
                     .attr("font-size", "5px");
             }
         });
 
-    // add title containing departement name
-    /*regionMap.selectAll("g")
-        .data(regions.features)
-        .append("title")
-        .text(function (d: Region) {
-            return dataset.filterByRegion(parseRegionName(d.properties.nom)).toArray()[0].preusuel;
-        });*/
-
 
     // add text containing names
-    const regionSVG = regionMap.selectAll("g").data(regions.features)
+    regionMap.selectAll("g").data(regions.features)
         .append("text")
         .attr("x", function (d: Region) { return path.centroid(d as any)[0]; })
         .attr("y", function (d: Region) { return path.centroid(d as any)[1] + 12; })
         .attr("text-anchor", "middle")
         .attr("font-size", "12px")
         .attr("fill", "black")
-        .attr("class", "departement-label")
+        .attr("class", "region-label")
         .html(function (d: Region) {
             const [bestMaleName, bestFemaleName] = dataset.filterByYearRange(2000, 2015).filterByRegion(parseRegionName(d.properties.nom)).getBestMaleAndFemaleName();
             
