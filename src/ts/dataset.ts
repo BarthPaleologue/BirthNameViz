@@ -84,39 +84,37 @@ export class Dataset {
     async loadCSV(csvPath: string): Promise<DataRow[]> {
         console.log(`Loading CSV...`);
 
+        // log progress to the console
         const rawCSV = await d3.csv(csvPath) as RawDataRow[];
 
         console.log(`Loaded ${rawCSV.length} rows from ${csvPath}`);
 
-        // remove rows with NaN values
-        const filteredNaNCSV = rawCSV.filter((row) => {
-            return !isNaN(+row.annais) && !isNaN(+row.dpt) && !isNaN(+row.nombre) && !isNaN(+row.sexe);
-        });
+        // remove rows with NaN values and preusuel === "_PRENOMS_RARES"
+        const parsedCSV = rawCSV.reduce((acc, row) => {
+            if (
+                !isNaN(+row.annais) &&
+                !isNaN(+row.dpt) &&
+                !isNaN(+row.nombre) &&
+                !isNaN(+row.sexe) &&
+                row.preusuel !== "" &&
+                row.preusuel !== "_PRENOMS_RARES"
+            ) {
+                acc.push({
+                    annais: parseInt(row.annais),
+                    dpt: parseInt(row.dpt),
+                    region: getRegionFromDepartement(parseInt(row.dpt)),
+                    nombre: parseInt(row.nombre),
+                    preusuel: row.preusuel,
+                    sexe: parseInt(row.sexe)
+                } as DataRow);
+            }
+            return acc;
+        }, [] as DataRow[]);
 
-        const NaNPercentage = (rawCSV.length - filteredNaNCSV.length) / rawCSV.length * 100;
+        const NaNPercentage = (rawCSV.length - parsedCSV.length) / rawCSV.length * 100;
 
-        console.log(`Droped ${rawCSV.length - filteredNaNCSV.length} rows with NaN values (${NaNPercentage.toFixed(2)}%)`);
+        console.log(`Dropped ${rawCSV.length - parsedCSV.length} rows with NaN values and _PRENOMS_RARES (${NaNPercentage.toFixed(2)}%)`);
 
-        // remove rows with preusuel === "_PRENOMS_RARES"
-        const filteredRareCSV = filteredNaNCSV.filter((row) => {
-            return row.preusuel !== "_PRENOMS_RARES";
-        });
-
-        const rarePercentage = (rawCSV.length - filteredRareCSV.length) / rawCSV.length * 100;
-
-        console.log(`Droped ${rawCSV.length - filteredRareCSV.length} rows with preusuel === "_PRENOMS_RARES" (${rarePercentage.toFixed(2)}%)`);
-
-        // cast nombre to number on each row
-        const parsedCSV: DataRow[] = filteredRareCSV.map((row) => {
-            return {
-                annais: parseInt(row.annais),
-                dpt: parseInt(row.dpt),
-                region: getRegionFromDepartement(parseInt(row.dpt)),
-                nombre: parseInt(row.nombre),
-                preusuel: row.preusuel,
-                sexe: parseInt(row.sexe)
-            };
-        });
 
         this.csv = parsedCSV;
 
@@ -217,11 +215,11 @@ export class Dataset {
     }
 
     filterByRegion(region: RegionName): Dataset {
-        if(this.csv === null) throw new Error("CSV was not loaded when filterByRegion was called");
-        if(this.filteredByRegion !== null) {
+        if (this.csv === null) throw new Error("CSV was not loaded when filterByRegion was called");
+        if (this.filteredByRegion !== null) {
             const filteredCSV = this.filteredByRegion.get(region) ?? [];
             return new Dataset(filteredCSV);
-        } 
+        }
 
         const filteredCSV = this.csv.filter((row) => {
             return row.region === region;
