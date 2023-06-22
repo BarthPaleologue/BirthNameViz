@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import "./window";
+import { InteractiveMap } from "./map";
 
 export class SliderSelector {
     ////////////Constants////////////
@@ -13,14 +13,18 @@ export class SliderSelector {
     readonly leftYear   : any;
     readonly rightYear  : any;
 
+    private map : InteractiveMap;
+
     private minYearSelected = 1900;
     private maxYearSelected = 2010;
 
     private dragOn = false;
     private timerId: number | undefined;
 
-    constructor() {
-        const selectors = d3.select('body').append("div")
+    constructor(map : InteractiveMap) {
+        this.map = map;
+
+        const selectors = d3.select('body').append("div").lower()
             .attr("class", "pannel")
             .attr("id", "selectors")
             .attr("width", this.widthColumn1)
@@ -59,11 +63,11 @@ export class SliderSelector {
         this.rightPerSel.on("mouseup", this.mouseUpRightHandler.bind(this));
 }
 
-public getMinYear() : Number {
+public getMinYear() : number {
     return this.minYearSelected;
 }
 
-public getMaxYear() : Number {
+public getMaxYear() : number {
     return this.maxYearSelected;
 }
 
@@ -71,7 +75,7 @@ public getMaxYear() : Number {
 private leftHandleClick() : void {
     this.maxYearSelected = this.rightPerSel.property('value'); //Save the value of the right range input
     this.rightPerSel.property('value', this.rightPerSel.attr('min')); //Set the right range input to the minimum
-    let pourcentage = (this.maxYearSelected-this.minYear)/(this.maxYear-this.minYear); //Compute the new proportion of left range input
+    const pourcentage = (this.maxYearSelected-this.minYear)/(this.maxYear-this.minYear); //Compute the new proportion of left range input
     this.leftPerSel.attr('min', -this.maxYearSelected); //Set the maximum value of the left range input to the right selected year
     this.updateWidth(pourcentage);
 
@@ -80,7 +84,7 @@ private leftHandleClick() : void {
 private rightHandleClick() : void {
     this.minYearSelected = -this.leftPerSel.property('value'); //Save the value of the left input
     this.leftPerSel.property('value', this.leftPerSel.attr('min'))//Set the left range input to the maximum value
-    let pourcentage = (this.minYearSelected-this.minYear)/(this.maxYear-this.minYear);
+    const pourcentage = (this.minYearSelected-this.minYear)/(this.maxYear-this.minYear);
     this.rightPerSel.attr('min', this.minYearSelected); //Set the minimum value of the right range input to the left selected year
     this.updateWidth(pourcentage);
 }
@@ -104,8 +108,8 @@ private rightHandleInput() : void {
 private mouseUpLeftHandler() : void {
     this.rightPerSel.property('value', this.maxYearSelected);
     this.minYearSelected = -this.leftPerSel.property('value'); //Save the value selected
-    let mid = Math.round((Number(this.minYearSelected)+Number(this.maxYearSelected))/2);
-    let pourcentage = (mid-this.minYear)/(this.maxYear-this.minYear);
+    const mid = Math.round((Number(this.minYearSelected)+Number(this.maxYearSelected))/2);
+    const pourcentage = (mid-this.minYear)/(this.maxYear-this.minYear);
     this.rightPerSel.attr('min', mid);
     this.leftPerSel.attr('min', -mid);
     this.updateWidth(pourcentage);
@@ -117,14 +121,14 @@ private mouseUpLeftHandler() : void {
     }, 100);
 
     console.log(this.minYearSelected, this.maxYearSelected);
-    window.map.updateYearRange(this.minYearSelected, this.maxYearSelected);
+    this.map.updateYearRange(this.minYearSelected, this.maxYearSelected);
 }
 
 private mouseUpRightHandler() : void {
     this.leftPerSel.property('value', -this.minYearSelected);
     this.maxYearSelected = this.rightPerSel.property('value');//Save the value selected
-    let mid = Math.round((Number(this.minYearSelected)+Number(this.maxYearSelected))/2);
-    let pourcentage = (mid-this.minYear)/(this.maxYear-this.minYear);
+    const mid = Math.round((Number(this.minYearSelected)+Number(this.maxYearSelected))/2);
+    const pourcentage = (mid-this.minYear)/(this.maxYear-this.minYear);
     this.leftPerSel.attr('min', -mid);
     this.rightPerSel.attr('min', mid);
     this.updateWidth(pourcentage);
@@ -136,7 +140,7 @@ private mouseUpRightHandler() : void {
     }, 100);
 
     console.log(this.minYearSelected, this.maxYearSelected);
-    window.map.updateYearRange(this.minYearSelected, this.maxYearSelected);
+    this.map.updateYearRange(this.minYearSelected, this.maxYearSelected);
 }
 
 private updateWidth(pourcentage : number) : void {

@@ -26,10 +26,10 @@ const data = dataset.toArray();
 
 console.log(data[0]);
 
-const selectors = new SliderSelector();
-window.selectors = selectors;
-
 const map = new InteractiveMap(dataset, 1960, 2015);
 window.map = map;
+
+const selectors = new SliderSelector(map);
+window.selectors = selectors;
 
 document.querySelector("#loader")?.remove();
