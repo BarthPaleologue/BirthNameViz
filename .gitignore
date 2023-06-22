@@ -6,3 +6,5 @@ dist
 coverage
 docs
 .~lock.*
+
+.ipynb_checkpoints
