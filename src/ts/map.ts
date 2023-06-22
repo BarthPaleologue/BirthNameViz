@@ -131,7 +131,9 @@ export class InteractiveMap {
             }
         }
 
-        let currentSex = Sex.Male;
+        let currentSex: Sex;
+        currentSex = Sex.Male;
+        currentSex = Sex.Male;
 
         d3.selectAll(".region")
             .data(regions.features)
