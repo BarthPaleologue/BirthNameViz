@@ -12,6 +12,14 @@ const minYear = 1900; //TODO: Change that according to the data
 const maxYear = 2010; //TODO: Change that according to the data
 
 
+////////////Global variable////////////
+let minYearSelected = 1900;
+let maxYearSelected = 2010;
+
+let dragOn = false;
+let timerId: number | undefined;
+
+
 ////////////Interfaces////////////
 // declare the type of the imported JSON
 interface GeoJSON {
@@ -50,15 +58,115 @@ const selectors = d3.select('body').append("div")
     .attr("width", widthColumn1)
     .attr("height", heightSelectors);
 
+selectors.append("h2")
+    .html("Filter by year");
+
 const periodSel = selectors.append("div");
+const labels = selectors.append("div");
 
-periodSel.append("input")
+const leftPerSel = periodSel.append("input")
     .attr("type", "range")
-    .attr("id", "period")
-    .attr("min", minYear)
-    .attr("max", maxYear);
+    .attr("scale", "{x => -x}")
+    .attr("id", "leftPeriod")
+    .attr("min", -(maxYear+minYear)/2)
+    .attr("max", -minYear);
 
-periodSel.append("label").html("Period");
+const leftYear = labels.append("div")
+    .attr("class", "left")
+    .append("label").html(minYear.toString());
+const rightYear = labels.append("div")
+    .attr("class", "right")
+    .append("label").html(maxYear.toString());
+
+const rightPerSel = periodSel.append("input")
+    .attr("type", "range")
+    .attr("id", "rightPeriod")
+    .attr("min", (maxYear+minYear)/2)
+    .attr("max", maxYear)
+    .attr("value", maxYear);
+
+leftPerSel.on('input', leftHandleInput);
+rightPerSel.on('input', rightHandleInput);
+leftPerSel.on("mouseup", mouseUpLeftHandler);
+rightPerSel.on("mouseup", mouseUpRightHandler);
+
+//Handle Functions
+function leftHandleClick() {
+    maxYearSelected = rightPerSel.property('value'); //Save the value of the right range input
+    rightPerSel.property('value', rightPerSel.attr('min')); //Set the right range input to the minimum
+    let pourcentage = (maxYearSelected-minYear)/(maxYear-minYear); //Compute the new proportion of left range input
+    leftPerSel.attr('min', -maxYearSelected); //Set the maximum value of the left range input to the right selected year
+    updateWidth(pourcentage);
+    console.log("Mouse In");
+
+}
+
+function rightHandleClick() {
+    minYearSelected = -leftPerSel.property('value'); //Save the value of the left input
+    leftPerSel.property('value', leftPerSel.attr('min'))//Set the left range input to the maximum value
+    let pourcentage = (minYearSelected-minYear)/(maxYear-minYear);
+    rightPerSel.attr('min', minYearSelected); //Set the minimum value of the right range input to the left selected year
+    updateWidth(pourcentage);
+    console.log("Mouse In");
+}
+
+function leftHandleInput() {
+    if (!dragOn) {
+        dragOn = true;
+        leftHandleClick();
+    }
+    leftYear.html((-leftPerSel.property('value')).toString());
+}
+
+function rightHandleInput() {
+    if (!dragOn) {
+        dragOn = true;
+        rightHandleClick();
+    }
+    rightYear.html((rightPerSel.property('value')).toString());
+}
+
+function mouseUpLeftHandler() {
+    rightPerSel.property('value', maxYearSelected);
+    let valueL = leftPerSel.property('value');
+    let mid = Math.round((-Number(valueL)+Number(maxYearSelected))/2);
+    let pourcentage = (mid-minYear)/(maxYear-minYear);
+    console.log("Mouse UP");
+    rightPerSel.attr('min', mid);
+    leftPerSel.attr('min', -mid);
+    updateWidth(pourcentage);
+
+    // Reset the flag with a delay
+    clearTimeout(timerId);
+    timerId = setTimeout(() => {
+      dragOn = false;
+      console.log(leftPerSel.property('value'), rightPerSel.property('value'));
+    }, 100);
+}
+
+function mouseUpRightHandler() {
+    leftPerSel.property('value', -minYearSelected);
+    let valueL = leftPerSel.property('value');
+    let valueR = rightPerSel.property('value');
+    let mid = Math.round((-Number(valueL)+Number(valueR))/2);
+    let pourcentage = (mid-minYear)/(maxYear-minYear);
+    console.log("Mouse Up");
+    leftPerSel.attr('min', -mid);
+    rightPerSel.attr('min', mid);
+    updateWidth(pourcentage);
+
+    // Reset the flag with a delay
+    clearTimeout(timerId);
+    timerId = setTimeout(() => {
+      dragOn = false;
+      console.log(leftPerSel.property('value'), rightPerSel.property('value'));
+    }, 100);
+}
+
+function updateWidth(pourcentage : number) {
+    leftPerSel.style('width', ((pourcentage*100).toString()+"%"));
+    rightPerSel.style('width', ((100-pourcentage*100).toString()+"%"));
+}
 
 ////////////Map pannel////////////
 
