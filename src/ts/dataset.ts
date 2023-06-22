@@ -67,8 +67,6 @@ export type NamePopularity = {
 export class Dataset {
     private csv: DataRow[] | null = null;
 
-    private filteredBySex: Map<Sex, DataRow[]> | null = null;
-    private filteredByRegion: Map<RegionName, DataRow[]> | null = null;
     private filteredByYear: Map<number, DataRow[]> | null = null;
 
     // This is big brain time
@@ -123,27 +121,17 @@ export class Dataset {
         return parsedCSV;
     }
 
+    /**
+     * Optimizes the dataset to make it faster to filter using hashmaps
+     */
     optimize() {
         if (this.csv === null) throw new Error("CSV was not loaded when optimize was called");
         else console.log("Optimizing dataset");
 
-        this.filteredBySex = new Map();
-        this.filteredByRegion = new Map();
         this.filteredByYear = new Map();
-
         this.filteredByRegionByYear = new Map();
 
         for (const row of this.csv) {
-            if (!this.filteredBySex.has(row.sexe)) {
-                this.filteredBySex.set(row.sexe, []);
-            }
-            this.filteredBySex.get(row.sexe)?.push(row);
-
-            if (!this.filteredByRegion.has(row.region)) {
-                this.filteredByRegion.set(row.region, []);
-            }
-            this.filteredByRegion.get(row.region)?.push(row);
-
             if (!this.filteredByYear.has(row.annais)) {
                 this.filteredByYear.set(row.annais, []);
             }
@@ -227,10 +215,19 @@ export class Dataset {
         return this.filterByDepartements([departement]);
     }
 
+    /**
+     * Returns a new Dataset with only the rows that match the given region
+     * @param region The region to include
+     * @returns A new Dataset with only the rows that match the given region
+     */
     filterByRegion(region: RegionName): Dataset {
         if (this.csv === null) throw new Error("CSV was not loaded when filterByRegion was called");
-        if (this.filteredByRegion !== null) {
-            const filteredCSV = this.filteredByRegion.get(region) ?? [];
+        if (this.filteredByRegionByYear !== null) {
+            const filteredByRegion = this.filteredByRegionByYear.get(region);
+            const filteredCSV = [];
+            for (const year of filteredByRegion?.keys() ?? []) {
+                filteredCSV.push(...(filteredByRegion?.get(year) ?? []));
+            }
             return new Dataset(filteredCSV);
         }
 
@@ -240,6 +237,13 @@ export class Dataset {
         return new Dataset(filteredCSV);
     }
 
+    /**
+     * Returns a new Dataset with only the rows that match the given region and year range
+     * @param region The region to filter with
+     * @param startYear The start of the year range (inclusive)
+     * @param endYear The end of the year range (inclusive)
+     * @returns A new Dataset with only the rows that match the given region and year range
+     */
     filterByRegionAndYearRange(region: RegionName, startYear: number, endYear: number): Dataset {
         if (this.csv === null) throw new Error("CSV was not loaded when filterByRegionAndYearRange was called");
 
