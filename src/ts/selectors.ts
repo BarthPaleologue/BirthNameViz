@@ -6,7 +6,7 @@ export class SliderSelector {
     readonly heightMap = 610;
     readonly heightSelectors = 200;
     readonly minYear = 1900;
-    readonly maxYear = 2018;
+    readonly maxYear = 2020;
     readonly leftPerSel: any;
     readonly rightPerSel: any;
     readonly leftYear: any;

@@ -27,7 +27,7 @@ const data = dataset.toArray();
 console.log(data[0]);
 
 const DEFAULT_MIN_YEAR = 2000;
-const DEFAULT_MAX_YEAR = 2015;
+const DEFAULT_MAX_YEAR = 2020;
 
 const map = new InteractiveMap(dataset, DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR);
 window.map = map;
