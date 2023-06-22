@@ -55,6 +55,12 @@ export enum Sex {
     Female = 2
 }
 
+export type NamePopularity = {
+    year: number;
+    name: string;
+    percentage: number;
+}
+
 /**
  * A wrapper around the CSV data to make it easier to manipulate
  */
@@ -413,4 +419,71 @@ export class Dataset {
 
         return new Dataset(copiedCSV);
     }
+    getNamesPopularity() : NamePopularity[] {
+        const namesPopularity: NamePopularity[] = [];
+        const map = new Map<string, number>();
+
+        if (this.csv === null) throw new Error("CSV was not loaded when getNamesPopularity was called");
+        const data = this.csv;
+        data.forEach((d) => {
+            const name = d.preusuel;
+            const year = d.annais;
+            const numberOfBirths = d.nombre;
+
+            const key = name + ' ' + year;
+            if (map.has(key) && map.get(key) !== undefined) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                map.set(key, map.get(key) + numberOfBirths);
+            } else {
+                map.set(key, numberOfBirths);
+            }
+        });
+
+        const MIN_YEAR = 1900;
+        const MAX_YEAR = 2019;
+
+        for (let cyear = MIN_YEAR; cyear <= MAX_YEAR; cyear++) {
+            const mapByYear = new Map<string, number>();
+            // This time, it's for a given year, so the key is the name itself
+            map.forEach((value, key) => {
+                    const splitted = key.split(" ", 2);
+                    const name = splitted[0];
+                    const year = +splitted[1];
+                    if (year === cyear) {
+                        if (mapByYear.has(name) && mapByYear.get(name) !== undefined) {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            mapByYear.set(name, mapByYear.get(name) + value);
+                        } else {
+                            mapByYear.set(name, value);
+                        }
+                    }
+                }
+            );
+
+            // Get the most popular name for this year
+            let max = 0;
+            let maxName = "";
+            let sum = 0;
+            mapByYear.forEach((value, key) => {
+                if (value > max) {
+                    max = value;
+                    maxName = key;
+                }
+                sum += value;
+            });
+
+            // Now, we can compute the percentage
+            const percentage = max / sum;
+            namesPopularity.push({
+                year: cyear,
+                name: maxName,
+                percentage: 100*percentage
+            });
+        }
+        return namesPopularity;
+    }
 }
+
+
