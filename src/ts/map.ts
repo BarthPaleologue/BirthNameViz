@@ -41,6 +41,7 @@ export class InteractiveMap {
 
         const projection = d3.geoConicConformal()
             .center([2.454071, 46.279229])
+            .fitSize([this.width, this.height], regions as any)
             .scale(4000)
             .translate([this.width / 2, this.height / 2]);
 

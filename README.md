@@ -11,6 +11,8 @@ This is the repository to our project of IGR204. The goal is to create interacta
 
 https://github.com/gregoiredavid/france-geojson
 
+Maps are to be simplified with https://mapshaper.org/Visvalingam2014/ and not the original mapshaper
+
 
 ## Strength and Weaknesses of our Visualizations
 Par Mickaël Adriao, Manon Heffernan, Adrien Coutelle, Daniel Zhou et Barthélemy Paléologue

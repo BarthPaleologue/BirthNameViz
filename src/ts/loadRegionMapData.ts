@@ -1,4 +1,4 @@
-import regionsJSON from '../assets/regions-avant-redecoupage-2015.json'
+import regionsJSON from '../assets/regions-avant-redecoupage-2015-simplified.json'
 
 // declare the type of the imported JSON
 interface GeoJSON {
