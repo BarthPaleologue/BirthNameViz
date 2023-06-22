@@ -26,10 +26,16 @@ const data = dataset.toArray();
 
 console.log(data[0]);
 
-const map = new InteractiveMap(dataset, 1960, 2015);
+const DEFAULT_MIN_YEAR = 2000;
+const DEFAULT_MAX_YEAR = 2015;
+
+const map = new InteractiveMap(dataset, DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR);
 window.map = map;
 
-const selectors = new SliderSelector(map);
+const selectors = new SliderSelector(DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR);
 window.selectors = selectors;
+selectors.addOnValueChangeCallback((minYear: number, maxYear: number) => {
+    map.updateYearRange(minYear, maxYear);
+});
 
 document.querySelector("#loader")?.remove();

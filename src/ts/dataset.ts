@@ -364,13 +364,13 @@ export class Dataset {
                     if (!bestMaleNames.has(row.preusuel)) {
                         bestMaleNames.set(row.preusuel, 0);
                     }
-                    bestMaleNames.set(row.preusuel, bestMaleNames.get(row.preusuel)! + row.nombre);
+                    bestMaleNames.set(row.preusuel, bestMaleNames.get(row.preusuel) as number + row.nombre);
                     break;
                 case Sex.Female:
                     if (!bestFemaleNames.has(row.preusuel)) {
                         bestFemaleNames.set(row.preusuel, 0);
                     }
-                    bestFemaleNames.set(row.preusuel, bestFemaleNames.get(row.preusuel)! + row.nombre);
+                    bestFemaleNames.set(row.preusuel, bestFemaleNames.get(row.preusuel) as number + row.nombre);
                     break;
             }
         }
