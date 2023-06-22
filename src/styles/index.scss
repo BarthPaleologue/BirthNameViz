@@ -1,73 +1,87 @@
+$border-radius: 5px;
+
 .region {
-    fill: rgb(8, 150, 155);
     stroke: rgb(255, 255, 255);
     transition: .2s;
     cursor: pointer;
 
     &:hover {
-        fill: rgb(255, 255, 255);
-        stroke: rgb(8, 150, 155);
+        opacity: 0.7;
     }
 }
 
-.pannel {
+.panel {
     background: beige;
-    border-radius: 3px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    margin-bottom: 5px;
-
-    &#map {
-        height: 700px;
-        width: 1000px;
-    }
+    border-radius: $border-radius;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+    margin-bottom: 10px;
+    padding: 10px;
 
     &#selectors {
-        height: 100px;
-        width: 1000px;
+        width: 800px;
     }
 
     h2 {
         text-align: center;
-        margin-bottom: 3px;
+        font-family: sans-serif;
+        margin-block: 0;
+        padding: 10px;
     }
 
-    div {
-        margin: 3px 3px 3px 3px;
-        padding: 3px;
+    .rangeLabelContainer {
         display: flex;
+        font-family: sans-serif;
+        padding: 10px;
+        font-size: 125%;
 
-        &.left {
-            margin-right: auto; 
-            margin-left: 0;
-            width: 50px;
-            float: left;
-            padding: 3px;
-        }
+        div {
+            &.left {
+                flex: 1;
+                text-align: left;
+            }
 
-        &.right {
-            margin-left: auto; 
-            margin-right: 0;
-            width: 50px;
-            float: left;
-            padding: 5px;
+            &.right {
+                flex: 1;
+                text-align: right;
+            }
         }
     }
 
-    input[type=range] {
-        pointer-events: all;
-        width: 50%;
-        height: 50%;
-        background-color: #fff;
-        border-radius: 50%;
-        box-shadow: none;
-        cursor: pointer;  
+    .rangeContainer {
+        padding: 10px;
+        input[type=range] {
+            background-color: #ddd;
+            box-shadow: none;
+            cursor: pointer;
+            appearance: none;
+            margin: 0;
+            width: 50%;
 
-        &#leftPeriod {
-            direction: rtl;
+            &#leftPeriod {
+                direction: rtl;
+                border-top-left-radius: $border-radius;
+                border-bottom-left-radius: $border-radius;
+            }
+
+            &#rightPeriod {
+                direction: ltr;
+                border-top-right-radius: $border-radius;
+                border-bottom-right-radius: $border-radius;
+            }
+
+            &::-webkit-slider-thumb {
+                pointer-events: all;
+                width: 20px;
+                height: 20px;
+                background-color: midnightblue;
+                border-radius: $border-radius;
+                cursor: pointer;
+                appearance: none;
+            }
         }
-      }
+    }
 }
-    
+
 .region-label {
     pointer-events: none;
     user-select: none;

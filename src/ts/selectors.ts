@@ -25,7 +25,7 @@ export class SliderSelector {
         this.maxYearSelected = maxYear;
         
         const selectors = d3.select('body').append("div").lower()
-            .attr("class", "pannel")
+            .attr("class", "panel")
             .attr("id", "selectors")
             .attr("width", this.widthColumn1)
             .attr("height", this.heightSelectors);
@@ -33,8 +33,8 @@ export class SliderSelector {
         selectors.append("h2")
             .html("Filter by year");
 
-        const periodSel = selectors.append("div");
-        const labels = selectors.append("div");
+        const periodSel = selectors.append("div").attr("class", "rangeContainer");
+        const labels = selectors.append("div").attr("class", "rangeLabelContainer");
 
         this.leftPerSel = periodSel.append("input")
             .attr("type", "range")
