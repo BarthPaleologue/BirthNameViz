@@ -334,25 +334,42 @@ export class Dataset {
 
         let bestYear = dataset[0];
         for (let i = 1; i < dataset.length; i++) {
-            if (dataset[i].nombre > bestYear.nombre) {
-                bestYear = dataset[i];
-            }
+            if (dataset[i].nombre > bestYear.nombre) bestYear = dataset[i];
         }
 
         return bestYear.annais;
     }
 
-    sortByPopularity(): Dataset {
+    /**
+     * Returns a new Dataset with the rows sorted by the number of births
+     * @returns A new Dataset with the rows sorted by the number of births
+     */
+    sortByNumberOfBirth(): Dataset {
         if (this.csv === null) throw new Error("CSV was not loaded when sortByPopularity was called");
 
-        const sortedCSV = this.csv.sort((a, b) => {
-            return b.nombre - a.nombre;
-        });
+        const sortedCSV = this.csv.sort((a, b) => b.nombre - a.nombre);
 
         return new Dataset(sortedCSV);
     }
 
+    /**
+     * Returns a tuple containing the name of the most given male and female in the dataset
+     * @returns [A, B] A is the most given male name and B is the most given female name
+     */
     getBestMaleAndFemaleName(): [string, string] {
+        const sorted = this.getMaleAndFemaleNamesSortedByNumberOfBirth();
+        const bestMaleNames = sorted[0];
+        if (bestMaleNames.length === 0) throw new Error("Sorted names by birth name gave an empty list, maybe the dataset is empty");
+        const bestFemaleNames = sorted[1];
+        if (bestFemaleNames.length === 0) throw new Error("Sorted names by birth name gave an empty list, maybe the dataset is empty");
+        return [sorted[0][0][0], sorted[1][0][0]];
+    }
+
+    /**
+     * Returns two arrays of tuples containing the name and the total number of births for each name, sorted by the number of births
+     * @returns Two arrays of tuples containing the name and the total number of births for each name, sorted by the number of births
+     */
+    getMaleAndFemaleNamesSortedByNumberOfBirth(): [[string, number][], [string, number][]] {
         if (this.csv === null) throw new Error("CSV was not loaded when getBestMaleAndFemaleNameInYearRange was called");
 
         const bestMaleNames = new Map<string, number>();
@@ -361,37 +378,61 @@ export class Dataset {
         for (const row of this.csv) {
             switch (row.sexe) {
                 case Sex.Male:
-                    if (!bestMaleNames.has(row.preusuel)) {
-                        bestMaleNames.set(row.preusuel, 0);
-                    }
+                    if (!bestMaleNames.has(row.preusuel)) bestMaleNames.set(row.preusuel, 0);
                     bestMaleNames.set(row.preusuel, bestMaleNames.get(row.preusuel) as number + row.nombre);
                     break;
                 case Sex.Female:
-                    if (!bestFemaleNames.has(row.preusuel)) {
-                        bestFemaleNames.set(row.preusuel, 0);
-                    }
+                    if (!bestFemaleNames.has(row.preusuel)) bestFemaleNames.set(row.preusuel, 0);
                     bestFemaleNames.set(row.preusuel, bestFemaleNames.get(row.preusuel) as number + row.nombre);
                     break;
             }
         }
 
-        const bestMaleName = [...bestMaleNames.entries()].reduce((acc, cur) => {
-            if (cur[1] > acc[1]) {
-                return cur;
-            } else {
-                return acc;
-            }
-        })[0];
+        const bestMaleNamesSorted = Array.from(bestMaleNames.entries()).sort((a, b) => b[1] - a[1]);
+        const bestFemaleNamesSorted = Array.from(bestFemaleNames.entries()).sort((a, b) => b[1] - a[1]);
 
-        const bestFemaleName = [...bestFemaleNames.entries()].reduce((acc, cur) => {
-            if (cur[1] > acc[1]) {
-                return cur;
-            } else {
-                return acc;
-            }
-        })[0];
+        return [bestMaleNamesSorted, bestFemaleNamesSorted];
+    }
 
-        return [bestMaleName, bestFemaleName];
+    /**
+     * Returns an array of tuples containing the name and the total number of births for each name, sorted by the number of births
+     * @returns An array of tuples containing the name and the total number of births for each name, sorted by the number of births
+     */
+    getAllNamesSortedByNumberOfBirth(): [string, number][] {
+        if (this.csv === null) throw new Error("CSV was not loaded when getAllNamesSortedByPopularity was called");
+
+        const names = new Map<string, number>();
+
+        for (const row of this.csv) {
+            if (!names.has(row.preusuel)) {
+                names.set(row.preusuel, 0);
+            }
+            names.set(row.preusuel, names.get(row.preusuel) as number + row.nombre);
+        }
+
+        const namesSorted = Array.from(names.entries()).sort((a, b) => {
+            return b[1] - a[1];
+        });
+
+        return namesSorted;
+    }
+
+    /**
+     * Returns the ranking of the given name in the dataset and the total number of names
+     * Ranking is based on the number of births in the entire dataset.
+     * Ranking starts at 1 and ends at the number of names in the dataset.
+     * @param name The name to search for. The name is automatically uppercased.
+     * @returns The ranking of the given name in the dataset and the total number of names (best rank is 1, worst rank is the number of names)
+     */
+    getRankingOfName(name: string): [number | null, number] {
+        if (this.csv === null) throw new Error("CSV was not loaded when getRankingOfName was called");
+
+        const names = this.getAllNamesSortedByNumberOfBirth();
+
+        const index = names.findIndex((element) => element[0] === name.toUpperCase());
+
+        if (index === -1) return [null, names.length];
+        return [index + 1, names.length];
     }
 
     /**

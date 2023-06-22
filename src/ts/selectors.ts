@@ -12,7 +12,10 @@ export class SliderSelector {
     readonly leftYear: any;
     readonly rightYear: any;
 
-    private onValueChangeCallbacks: ((minYear: number, maxYear: number) => void)[] = [];
+    private onYearRangeChangeCallbacks: ((minYear: number, maxYear: number) => void)[] = [];
+    private onNameChangeCallbacks: ((name: string | null) => void)[] = [];
+
+    private filteredName: string | null = null;
 
     private minYearSelected: number;
     private maxYearSelected: number;
@@ -24,17 +27,17 @@ export class SliderSelector {
         this.minYearSelected = minYear;
         this.maxYearSelected = maxYear;
         
-        const selectors = d3.select('body').append("div").lower()
+        const panel = d3.select('body').append("div").lower()
             .attr("class", "panel")
             .attr("id", "selectors")
             .attr("width", this.widthColumn1)
             .attr("height", this.heightSelectors);
 
-        selectors.append("h2")
+        panel.append("h2")
             .html("Filter by year");
 
-        const periodSel = selectors.append("div").attr("class", "rangeContainer");
-        const labels = selectors.append("div").attr("class", "rangeLabelContainer");
+        const periodSel = panel.append("div").attr("class", "rangeContainer");
+        const labels = panel.append("div").attr("class", "rangeLabelContainer");
 
         this.leftPerSel = periodSel.append("input")
             .attr("type", "range")
@@ -60,6 +63,34 @@ export class SliderSelector {
         this.rightPerSel.on('input', this.rightHandleInput.bind(this));
         this.leftPerSel.on("mouseup", this.mouseUpLeftHandler.bind(this));
         this.rightPerSel.on("mouseup", this.mouseUpRightHandler.bind(this));
+
+        const nameInput = panel.append("div").attr("class", "nameInputContainer");
+        nameInput.append("h2")
+            .html("Filter by name");
+        nameInput.append("input")
+            .attr("type", "text")
+            .attr("id", "nameInput")
+            .attr("placeholder", "Enter a name")
+            .attr("name", "nameInput")
+            .on("input", () => {
+                const name = (document.getElementById("nameInput") as HTMLInputElement).value;
+                if (name === "") {
+                    (document.getElementById("nameInputButton") as HTMLButtonElement).disabled = true;
+                    this.nameInputHandler();
+                } else {
+                    (document.getElementById("nameInputButton") as HTMLButtonElement).disabled = false;
+                }
+            })
+            .on("keyup", (event) => {
+                if (event.key === "Enter") {
+                    this.nameInputHandler();
+                }
+            });
+        nameInput.append("button")
+            .attr("id", "nameInputButton")
+            .attr("type", "button")
+            .html("Filter")
+            .on("click", this.nameInputHandler.bind(this));
     }
 
     //Handle Functions
@@ -112,7 +143,7 @@ export class SliderSelector {
 
         console.log(this.minYearSelected, this.maxYearSelected);
 
-        this.dispatchCallbacks();
+        this.dispatchYearRangeCallbacks();
     }
 
     private mouseUpRightHandler(): void {
@@ -132,7 +163,7 @@ export class SliderSelector {
 
         console.log(this.minYearSelected, this.maxYearSelected);
 
-        this.dispatchCallbacks();
+        this.dispatchYearRangeCallbacks();
     }
 
     private updateWidth(pourcentage: number): void {
@@ -141,13 +172,29 @@ export class SliderSelector {
     }
 
 
-    public addOnValueChangeCallback(callback: (minYear: number, maxYear: number) => void): void {
-        this.onValueChangeCallbacks.push(callback);
+    public addOnYearRangeChangeCallback(callback: (minYear: number, maxYear: number) => void): void {
+        this.onYearRangeChangeCallbacks.push(callback);
     }
 
-    private dispatchCallbacks(): void {
-        for (const callback of this.onValueChangeCallbacks) {
+    private dispatchYearRangeCallbacks(): void {
+        for (const callback of this.onYearRangeChangeCallbacks) {
             callback(this.minYearSelected, this.maxYearSelected);
+        }
+    }
+
+    private nameInputHandler(): void {
+        const name = (document.getElementById("nameInput") as HTMLInputElement).value;
+        this.filteredName = name === "" ? null : name;
+        this.dispatchNameChangeCallbacks();
+    }
+
+    public addOnNameChangeCallback(callback: (name: string | null) => void): void {
+        this.onNameChangeCallbacks.push(callback);
+    }
+
+    private dispatchNameChangeCallbacks(): void {
+        for (const callback of this.onNameChangeCallbacks) {
+            callback(this.filteredName);
         }
     }
 }

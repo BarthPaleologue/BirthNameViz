@@ -34,8 +34,11 @@ window.map = map;
 
 const selectors = new SliderSelector(DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR);
 window.selectors = selectors;
-selectors.addOnValueChangeCallback((minYear: number, maxYear: number) => {
+selectors.addOnYearRangeChangeCallback((minYear: number, maxYear: number) => {
     map.updateYearRange(minYear, maxYear);
+});
+selectors.addOnNameChangeCallback((name: string | null) => {
+    map.filterByName(name);
 });
 
 document.querySelector("#loader")?.remove();
