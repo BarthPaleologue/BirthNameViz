@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { RegionName, getRegionFromDepartement } from "./region";
+import {RegionName, getRegionFromDepartement} from "./region";
 import {map} from "d3";
 
 /**
@@ -465,7 +465,8 @@ export class Dataset {
 
         return new Dataset(copiedCSV);
     }
-    getNamesPopularity() : NamePopularity[] {
+
+    getNamesPopularity(): NamePopularity[] {
         const namesPopularity: NamePopularity[] = [];
         const map = new Map<string, number>();
 
@@ -525,13 +526,13 @@ export class Dataset {
             namesPopularity.push({
                 year: cyear,
                 name: maxName,
-                percentage: 100*percentage
+                percentage: 100 * percentage
             });
         }
         return namesPopularity;
     }
 
-    getNamesPopularityForSeveralNames(names: string[]) : NamePopularity[] {
+    getNamesPopularityForSeveralNames(names: string[]): NamePopularity[] {
 
         const namesPopularity: NamePopularity[] = [];
 
@@ -541,7 +542,7 @@ export class Dataset {
         const totalBirthPerYear = new Map<number, number>();
 
         data.forEach((d) => {
-            if (totalBirthPerYear.has(d.annais)){
+            if (totalBirthPerYear.has(d.annais)) {
                 const currentTotal = totalBirthPerYear.get(d.annais);
                 if (currentTotal === undefined) return;
                 totalBirthPerYear.set(d.annais, currentTotal + d.nombre);
@@ -552,12 +553,12 @@ export class Dataset {
 
         data.forEach((d) => {
             const name = d.preusuel;
-            if (names.indexOf(name) > -1 ) {
+            if (names.indexOf(name) > -1) {
                 const year = d.annais;
                 const number = d.nombre;
                 if (totalBirthPerYear.has(year)) {
                     const machin = totalBirthPerYear.get(year);
-                    if(machin === undefined) return;
+                    if (machin === undefined) return;
                     namesPopularity.push({
                         year: year,
                         name: name,
