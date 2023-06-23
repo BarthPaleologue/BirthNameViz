@@ -1,11 +1,19 @@
 import * as d3 from "d3";
 import "./window";
+import { InteractiveMap } from "./map";
+
+enum Gender {
+    MALE = 0,
+    BOTH,
+    FEMALE,
+}
 
 export class SliderSelector {
     ////////////Constants////////////
     readonly widthColumn1 = 975;
     readonly heightMap = 610;
     readonly heightSelectors = 200;
+    readonly widthGenderSel = 100;
     readonly minYear = 1900; //TODO: Change that according to the data
     readonly maxYear = 2010; //TODO: Change that according to the data
     readonly leftPerSel : any;
@@ -15,12 +23,23 @@ export class SliderSelector {
 
     private minYearSelected = 1900;
     private maxYearSelected = 2010;
+    private genderSelected = Gender.BOTH;
+
+    private map : InteractiveMap;
 
     private dragOn = false;
     private timerId: number | undefined;
 
-    constructor() {
-        const selectors = d3.select('body').append("div")
+    constructor(map : InteractiveMap) {
+        this.map = map;
+
+        const selectGroup = d3.select('body').append("div").lower()
+            .attr('id', 'selectGroup')
+            .attr('width', (this.widthColumn1 + this.widthGenderSel).toString() + 'px')
+            .attr('height', this.heightSelectors);
+
+        const selectors = selectGroup.append("div")
+
             .attr("class", "pannel")
             .attr("id", "selectors")
             .attr("width", this.widthColumn1)
@@ -57,6 +76,32 @@ export class SliderSelector {
         this.rightPerSel.on('input', this.rightHandleInput.bind(this));
         this.leftPerSel.on("mouseup", this.mouseUpLeftHandler.bind(this));
         this.rightPerSel.on("mouseup", this.mouseUpRightHandler.bind(this));
+
+        //Gender Selector
+        const genderSel = selectGroup.append("div")
+        .attr('class', 'pannel')
+        .attr('id', "gender_select")
+        .attr('width', this.widthGenderSel.toString() + 'px')
+        .attr('height', this.heightSelectors);
+
+        genderSel.append("h2")
+            .html("Filter by gender");
+        
+        genderSel.append("input")
+            .attr("type", "range")
+            .attr("id", "gender")
+            .attr("min", 0)
+            .attr("max", 2)
+            .attr("value", 1)
+            .attr('list', 'gender_values');
+        //Add the list of value to show the ticks
+        const datalist = genderSel.append("datalist").attr('id', 'gender_values');
+        datalist.append("option")
+                .attr('value', '0');
+        datalist.append("option")
+                .attr('value', '1');
+        datalist.append("option")
+                .attr('value', '2');
 }
 
 public getMinYear() : Number {
@@ -65,6 +110,16 @@ public getMinYear() : Number {
 
 public getMaxYear() : Number {
     return this.maxYearSelected;
+}
+
+public setRange(min: number, max: number) : void {
+    const mid = Number((max-min)/2);
+    const pourcentage = 100*(mid - min)/(this.maxYear- this.minYear);
+    this.updateWidth(pourcentage);
+    this.minYearSelected = min;
+    this.maxYearSelected = max;
+    this.leftPerSel.attr('min', -this.maxYearSelected);
+    this.rightPerSel.attr('min', this.minYearSelected);
 }
 
 //Handle Functions

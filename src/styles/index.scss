@@ -10,11 +10,21 @@
     }
 }
 
+#selectGroup {
+    padding: 0px;
+    display: flex;
+
+    &>div {
+        margin-right: 10px;
+    }
+}
+
 .pannel {
     background: beige;
     border-radius: 3px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     margin-bottom: 5px;
+    margin-right: 5px;
 
     &#map {
         height: 700px;
@@ -29,6 +39,9 @@
     h2 {
         text-align: center;
         margin-bottom: 3px;
+        margin-top: 3px;
+        margin-left: 10px;
+        margin-right: 10px;
     }
 
     div {
@@ -64,6 +77,12 @@
 
         &#leftPeriod {
             direction: rtl;
+        }
+
+        &#gender {
+            text-align: center;
+            display: block;
+            margin: auto;
         }
       }
 }
