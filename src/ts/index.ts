@@ -37,5 +37,8 @@ selectors.addOnNameChangeCallback((name: string | null) => {
 });
 
 const histopopularity = new PopularityGraph(dataset);
+selectors.addOnNameChangeCallback((name: string | null) => {
+    histopopularity.filterByName(name);
+});
 
 document.querySelector("#loader")?.remove();
