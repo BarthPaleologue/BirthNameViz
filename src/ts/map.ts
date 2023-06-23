@@ -193,8 +193,10 @@ export class InteractiveMap {
         if (this.filteredName === null && this.mode === MapMode.NamePopularity) {
             this.mode = MapMode.BestName;
             this.updateBestNameRepresentation();
-        } else {
+        } else if (this.filteredName !== null && this.mode === MapMode.BestName) {
             this.mode = MapMode.NamePopularity;
+            this.updateNamePopularityRepresentation();
+        } else if (this.filteredName !== null && this.mode === MapMode.NamePopularity) {
             this.updateNamePopularityRepresentation();
         }
     }
