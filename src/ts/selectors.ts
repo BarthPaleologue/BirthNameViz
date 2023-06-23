@@ -1,4 +1,11 @@
 import * as d3 from "d3";
+import { MAX_YEAR } from "./settings";
+
+enum Gender {
+    MALE = 0,
+    BOTH,
+    FEMALE,
+}
 
 export class SliderSelector {
     ////////////Constants////////////
@@ -17,8 +24,11 @@ export class SliderSelector {
 
     private filteredName: string | null = null;
 
+    private animationInterval: number | null = null;
+
     private minYearSelected: number;
     private maxYearSelected: number;
+    private genderSelected = Gender.BOTH;
 
     private dragOn = false;
     private timerId: number | undefined;
@@ -26,7 +36,7 @@ export class SliderSelector {
     constructor(minYear: number, maxYear: number) {
         this.minYearSelected = minYear;
         this.maxYearSelected = maxYear;
-        
+
         const panel = d3.select('body').append("div").lower()
             .attr("class", "panel")
             .attr("id", "selectors")
@@ -36,7 +46,41 @@ export class SliderSelector {
         panel.append("h2")
             .html("Filter by year");
 
-        const periodSel = panel.append("div").attr("class", "rangeContainer");
+        const rangeAndPlayContainer = panel.append("div").attr("class", "rangeAndPlayContainer");
+        const playButton = rangeAndPlayContainer.append("button")
+            .attr("id", "playButton")
+            .attr("type", "button")
+            .html("Play");
+
+        playButton
+            .on("click", () => {
+                if (this.animationInterval === null) {
+                    this.animationInterval = setInterval(() => {
+                        const min = this.minYearSelected;
+                        const max = this.maxYearSelected;
+
+                        const newMin = Math.min(MAX_YEAR, min + 1);
+                        const newMax = Math.min(MAX_YEAR, max + 1);
+
+                        if(newMax === MAX_YEAR && this.animationInterval !== null) {
+                            clearInterval(this.animationInterval);
+                            this.animationInterval = null;
+                            playButton.html("Play");
+                        }
+
+                        this.setRange(newMin, newMax);
+                    }, 1000);
+
+                    playButton.html("Stop");
+                } else {
+                    clearInterval(this.animationInterval);
+                    this.animationInterval = null;
+
+                    playButton.html("Play");
+                }
+            });
+
+        const periodSel = rangeAndPlayContainer.append("div").attr("class", "rangeContainer");
         const labels = panel.append("div").attr("class", "rangeLabelContainer");
 
         this.leftPerSel = periodSel.append("input")
@@ -63,6 +107,8 @@ export class SliderSelector {
         this.rightPerSel.on('input', this.rightHandleInput.bind(this));
         this.leftPerSel.on("mouseup", this.mouseUpLeftHandler.bind(this));
         this.rightPerSel.on("mouseup", this.mouseUpRightHandler.bind(this));
+
+        this.setRange(minYear, maxYear);
 
         const nameInput = panel.append("div").attr("class", "nameInputContainer");
         nameInput.append("h2")
@@ -93,21 +139,41 @@ export class SliderSelector {
             .on("click", this.nameInputHandler.bind(this));
     }
 
+    /*Update the slider to fit the specified range */
+    public setRange(min: number, max: number): void {
+        const mid = Math.round(((max - min) / 2) + min);
+        const frac = (mid - this.minYear) / (this.maxYear - this.minYear);
+        this.updateWidth(frac);
+        console.log(mid, frac, min, max);
+        this.leftPerSel.attr('min', -mid); //Update the max value of the left range input
+        this.rightPerSel.attr('min', mid); //Update the min value of the left range input
+
+        //Update the value
+        this.minYearSelected = min;
+        this.maxYearSelected = max;
+        this.leftPerSel.property('value', -min);
+        this.rightPerSel.property('value', max);
+        this.leftYear.html(min.toString());
+        this.rightYear.html(max.toString());
+
+        this.dispatchYearRangeCallbacks();
+    }
+
     //Handle Functions
     private leftHandleClick(): void {
-        this.maxYearSelected = this.rightPerSel.property('value'); //Save the value of the right range input
+        this.maxYearSelected = Number(this.rightPerSel.property('value')); //Save the value of the right range input
         this.rightPerSel.property('value', this.rightPerSel.attr('min')); //Set the right range input to the minimum
-        const pourcentage = (this.maxYearSelected - this.minYear) / (this.maxYear - this.minYear); //Compute the new proportion of left range input
+        const frac = (this.maxYearSelected - this.minYear) / (this.maxYear - this.minYear); //Compute the new proportion of left range input
         this.leftPerSel.attr('min', -this.maxYearSelected); //Set the maximum value of the left range input to the right selected year
-        this.updateWidth(pourcentage);
+        this.updateWidth(frac);
     }
 
     private rightHandleClick(): void {
         this.minYearSelected = -this.leftPerSel.property('value'); //Save the value of the left input
         this.leftPerSel.property('value', this.leftPerSel.attr('min'))//Set the left range input to the maximum value
-        const pourcentage = (this.minYearSelected - this.minYear) / (this.maxYear - this.minYear);
+        const frac = (this.minYearSelected - this.minYear) / (this.maxYear - this.minYear);
         this.rightPerSel.attr('min', this.minYearSelected); //Set the minimum value of the right range input to the left selected year
-        this.updateWidth(pourcentage);
+        this.updateWidth(frac);
     }
 
     private leftHandleInput(): void {
@@ -130,10 +196,10 @@ export class SliderSelector {
         this.rightPerSel.property('value', this.maxYearSelected);
         this.minYearSelected = -this.leftPerSel.property('value'); //Save the value selected
         const mid = Math.round((Number(this.minYearSelected) + Number(this.maxYearSelected)) / 2);
-        const pourcentage = (mid - this.minYear) / (this.maxYear - this.minYear);
+        const frac = (mid - this.minYear) / (this.maxYear - this.minYear);
         this.rightPerSel.attr('min', mid);
         this.leftPerSel.attr('min', -mid);
-        this.updateWidth(pourcentage);
+        this.updateWidth(frac);
 
         // Reset the flag with a delay
         clearTimeout(this.timerId);
@@ -150,10 +216,10 @@ export class SliderSelector {
         this.leftPerSel.property('value', -this.minYearSelected);
         this.maxYearSelected = this.rightPerSel.property('value');//Save the value selected
         const mid = Math.round((Number(this.minYearSelected) + Number(this.maxYearSelected)) / 2);
-        const pourcentage = (mid - this.minYear) / (this.maxYear - this.minYear);
+        const frac = (mid - this.minYear) / (this.maxYear - this.minYear);
         this.leftPerSel.attr('min', -mid);
         this.rightPerSel.attr('min', mid);
-        this.updateWidth(pourcentage);
+        this.updateWidth(frac);
 
         // Reset the flag with a delay
         clearTimeout(this.timerId);
@@ -166,9 +232,10 @@ export class SliderSelector {
         this.dispatchYearRangeCallbacks();
     }
 
-    private updateWidth(pourcentage: number): void {
-        this.leftPerSel.style('width', ((pourcentage * 100).toString() + "%"));
-        this.rightPerSel.style('width', ((100 - pourcentage * 100).toString() + "%"));
+    /*Update the width of the input range respecting a given proportion for the left (between 0 and 1) */
+    private updateWidth(frac: number): void {
+        this.leftPerSel.style('width', ((frac * 100).toString() + "%"));
+        this.rightPerSel.style('width', ((100 - frac * 100).toString() + "%"));
     }
 
 

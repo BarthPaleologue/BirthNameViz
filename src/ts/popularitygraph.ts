@@ -22,16 +22,16 @@ export class PopularityGraph {
         // We create the y axis
         const y = d3.scaleLinear()
             .domain([0, 100])
-            .range([0, 350]);
+            .range([0, 800]);
 
-        // Add a rect for each year
+        // Add a rect for each yearHow do baby names evolve over time? Are there names that have consistently remained popular or unpopular? Are there some that have were suddenly or briefly popular or unpopular? Are there trends in time
         svg.selectAll("rect")
             .data(popularity)
             .enter()
             .append("rect")
             .attr("x", (d, i) => x(d.year))
             .attr("y", (d, i) => 350 - y(d.percentage))
-            .attr("width", 800 / (MAX_YEAR - MIN_YEAR))
+            .attr("width", 0.9 * 800 / (MAX_YEAR - MIN_YEAR))
             .attr("height", (d, i) => y(d.percentage))
             .attr("fill", "blue");
 
@@ -64,14 +64,16 @@ export class PopularityGraph {
 
         // Add a tooltip that displays the name when you hover over the rectanble
         svg.selectAll("rect")
+            .data(popularity)
             .on("mouseover", (i, d) => {
-                svg.append("text")
-                    .attr("id", "tooltip")
-                    .attr("x", x(i.year))
-                    .attr("y", 350 - y(i.percentage) - 10)
-                    .attr("text-anchor", "middle")
-                    .text(i.name);
-            }
+                    svg.append("text")
+                        .attr("id", "tooltip")
+                        .attr("x", x(d.year))
+                        .attr("y", 350 - y(d.percentage) - 10)
+                        .attr("text-anchor", "middle")
+                        .text(d.name + ": " + d.percentage.toFixed(2) + "%" + "année: " + d.year);
+                    console.log(d.name + " : " + d.percentage + "%" + "année: " + d.year);
+                }
             );
 
         // Remove the tooltip when you stop hovering over the rectangle
@@ -82,4 +84,35 @@ export class PopularityGraph {
 
         return svg;
     }
+}
+
+export class popularityCurve {
+
+    // popularity curve
+
+    constructor(namesPopularity: string[]) {
+        const svg = d3.select("body").append("svg")
+            .attr("width", 800)
+            .attr("height", 350);
+
+        // We create the x axis
+        const x = d3.scaleLinear()
+            .domain([MIN_YEAR, MAX_YEAR])
+            .range([0, 800]);
+
+        // We create the y axis
+        const y = d3.scaleLinear()
+            .domain([0, 100])
+            .range([0, 800]);
+
+
+        // Create a curve graph
+
+
+        // ...
+
+        return svg;
+
+    }
+
 }
