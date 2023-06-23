@@ -1,54 +1,76 @@
 import * as d3 from "d3";
-import {NamePopularity} from "./dataset";
-
-const MIN_YEAR = 1900;
-const MAX_YEAR = 2019;
+import { Dataset } from "./dataset";
+import { MAX_YEAR, MIN_YEAR } from "./settings";
 
 // Create a graph class that will be used to create the popularity graph with d3
 export class PopularityGraph {
+    dataset: Dataset;
 
-    // popularity = Dataset.getNamesPopularity();
-    constructor(popularity: NamePopularity[]) {
+    filteredName: string | null = null;
+
+    popularity: Map<number, number> = new Map<number, number>();
+
+    svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
+
+    x: d3.ScaleLinear<number, number, never>;
+    y: d3.ScaleLinear<number, number, never>;
+
+    constructor(dataset: Dataset) {
+        this.dataset = dataset;
+
+        this.filteredName = "Jean";
+
+        this.popularity = dataset.getPercentageByYearForName(this.filteredName);
+
+        const years = Array.from(this.popularity.keys());
+        const percentages = Array.from(this.popularity.values()).map((v) => v);
+
+        // normalize the percentages
+        const maxPercentage = Math.max(...percentages);
+        percentages.forEach((v, i) => {
+            percentages[i] = 100 * v / maxPercentage;
+        });
+
         // We create the svg element
-        const svg = d3.select("body").append("svg")
+        this.svg = d3.select("body").append("svg")
             .attr("width", 800)
             .attr("height", 350);
 
         // We create the x axis
-        const x = d3.scaleLinear()
+        this.x = d3.scaleLinear()
             .domain([MIN_YEAR, MAX_YEAR])
             .range([0, 800]);
 
         // We create the y axis
-        const y = d3.scaleLinear()
+        this.y = d3.scaleLinear()
             .domain([0, 100])
-            .range([0, 800]);
+            .range([0, 350]);
 
         // Add a rect for each yearHow do baby names evolve over time? Are there names that have consistently remained popular or unpopular? Are there some that have were suddenly or briefly popular or unpopular? Are there trends in time
-        svg.selectAll("rect")
-            .data(popularity)
+        this.svg.selectAll("rect")
+            .data(this.popularity)
             .enter()
             .append("rect")
-            .attr("x", (d, i) => x(d.year))
-            .attr("y", (d, i) => 350 - y(d.percentage))
+            .attr("x", (d, i) => this.x(years[i]))
+            .attr("y", (d, i) => 350 - this.y(percentages[i]))
             .attr("width", 0.9 * 800 / (MAX_YEAR - MIN_YEAR))
-            .attr("height", (d, i) => y(d.percentage))
+            .attr("height", (d, i) => this.y(percentages[i]))
             .attr("fill", "blue");
 
         // Add the x axis and label
-        svg.append("g")
+        this.svg.append("g")
             .attr("transform", `translate(0, 350)`)
-            .call(d3.axisBottom(x));
-        svg.append("text")
+            .call(d3.axisBottom(this.x));
+        this.svg.append("text")
             .attr("x", 400)
             .attr("y", 350)
             .attr("text-anchor", "middle")
             .text("Année");
 
         // Add the y axis and label, remove the domain line
-        svg.append("g")
-            .call(d3.axisLeft(y).tickSize(0));
-        svg.append("text")
+        this.svg.append("g")
+            .call(d3.axisLeft(this.y).tickSize(0));
+        this.svg.append("text")
             .attr("x", 0)
             .attr("y", 0)
             .attr("text-anchor", "middle")
@@ -56,33 +78,59 @@ export class PopularityGraph {
             .text("Popularité");
 
         // Add the title
-        svg.append("text")
+        this.svg.append("text")
             .attr("x", 400)
             .attr("y", 20)
+            .attr("class", "popularity-title")
             .attr("text-anchor", "middle")
-            .text("Popularité du prénom");
+            .text(`Popularité du prénom ${this.filteredName}`);
 
         // Add a tooltip that displays the name when you hover over the rectanble
-        svg.selectAll("rect")
-            .data(popularity)
-            .on("mouseover", (i, d) => {
-                    svg.append("text")
-                        .attr("id", "tooltip")
-                        .attr("x", x(d.year))
-                        .attr("y", 350 - y(d.percentage) - 10)
-                        .attr("text-anchor", "middle")
-                        .text(d.name + ": " + d.percentage.toFixed(2) + "%" + "année: " + d.year);
-                    console.log(d.name + " : " + d.percentage + "%" + "année: " + d.year);
-                }
-            );
-
-        // Remove the tooltip when you stop hovering over the rectangle
-        svg.selectAll("rect")
-            .on("mouseout", (i, d) => {
-                svg.select("#tooltip").remove();
+        this.svg.selectAll("rect")
+            .data(this.popularity)
+            .on("mouseover", (e: MouseEvent, d) => {
+                this.svg.append("text")
+                    .attr("id", "tooltip")
+                    .attr("x", e.clientX)
+                    .attr("y", 350 - e.clientY - 10)
+                    .attr("text-anchor", "middle")
+                    .text(this.filteredName + ": " + d[1].toFixed(2) + "%" + "année: " + d[0]);
+                console.log(this.filteredName + " : " + d[1].toFixed(2) + "%" + "année: " + d[0]);
             });
 
-        return svg;
+        // Remove the tooltip when you stop hovering over the rectangle
+        this.svg.selectAll("rect")
+            .on("mouseout", (i, d) => {
+                this.svg.select("#tooltip").remove();
+            });
+    }
+
+    filterByName(name: string | null) {
+        if (this.filteredName === name) return;
+        if (name === null) name = "Jean";
+        this.filteredName = name;
+
+        this.popularity = this.dataset.getPercentageByYearForName(this.filteredName);
+
+        const years = Array.from(this.popularity.keys());
+        const percentages = Array.from(this.popularity.values()).map((v) => v);
+
+        // normalize the percentages
+        const maxPercentage = Math.max(...percentages);
+        percentages.forEach((v, i) => {
+            percentages[i] = 100 * v / maxPercentage;
+        });
+
+        this.svg.selectAll("rect")
+            .data(this.popularity)
+            .attr("x", (d, i) => this.x(years[i]))
+            .attr("y", (d, i) => 350 - this.y(percentages[i]))
+            .attr("width", 0.9 * 800 / (MAX_YEAR - MIN_YEAR))
+            .attr("height", (d, i) => this.y(percentages[i]))
+            .attr("fill", "blue");
+
+        this.svg.select(".popularity-title")
+            .text(`Popularité du prénom ${this.filteredName}`);
     }
 }
 

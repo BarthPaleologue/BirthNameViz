@@ -17,12 +17,6 @@ dataset.optimize();
 
 console.log(dataset.filterByYearRange(1990, 2015).filterByDepartement(75).filterByName("Daniel").toArray());
 
-console.log(dataset.filterByYearRange(1990, 2015).filterByName("Manon").aggregateByYear());
-
-console.log(dataset.filterByYearRange(1960, 2015).filterByName("Claude").filterBySex(Sex.Female).aggregateByYear());
-
-console.log(dataset.getBestYearFor("Adrien"));
-
 const data = dataset.toArray();
 
 console.log(data[0]);
@@ -42,6 +36,9 @@ selectors.addOnNameChangeCallback((name: string | null) => {
     map.filterByName(name);
 });
 
-const histopopularity = new PopularityGraph(dataset.getNamesPopularity());
+const histopopularity = new PopularityGraph(dataset);
+selectors.addOnNameChangeCallback((name: string | null) => {
+    histopopularity.filterByName(name);
+});
 
 document.querySelector("#loader")?.remove();

@@ -1,6 +1,5 @@
 import * as d3 from "d3";
-import {RegionName, getRegionFromDepartement} from "./region";
-import {map} from "d3";
+import { RegionName, getRegionFromDepartement } from "./region";
 
 /**
  * Represents a row in the raw CSV file
@@ -54,12 +53,6 @@ export interface RegionAggregatedDataRow {
 export enum Sex {
     Male = 1,
     Female = 2
-}
-
-export type NamePopularity = {
-    year: number;
-    name: string;
-    percentage: number;
 }
 
 /**
@@ -303,55 +296,6 @@ export class Dataset {
     }
 
     /**
-     * Returns a new Dataset with the rows summed by year. The departement data is agregated, so the departement column is not included in the returned data.
-     * @returns A new Dataset with the rows summed by year
-     */
-    aggregateByYear(): YearAggregatedDataRow[] {
-        if (this.csv === null) throw new Error("CSV was not loaded when aggregateByYear was called");
-
-        const aggregatedCSV = this.csv.reduce((accumulator, currentValue) => {
-            const index = accumulator.findIndex((element) => {
-                return element.annais === currentValue.annais && element.preusuel === currentValue.preusuel && element.sexe === currentValue.sexe;
-            });
-
-            if (index === -1) {
-                const newElement = {
-                    annais: currentValue.annais,
-                    preusuel: currentValue.preusuel,
-                    nombre: currentValue.nombre,
-                    sexe: currentValue.sexe
-                };
-                accumulator.push(newElement);
-            } else {
-                accumulator[index].nombre += currentValue.nombre;
-            }
-
-            return accumulator;
-        }, [] as YearAggregatedDataRow[]);
-
-        return aggregatedCSV;
-    }
-
-
-    /**
-     * Returns the year with the most births for the given name
-     * @param name The name to search for
-     * @returns The year with the most births for the given name
-     */
-    getBestYearFor(name: string): number {
-        if (this.csv === null) throw new Error("CSV was not loaded when getBestYearFor was called");
-
-        const dataset = this.filterByName(name).aggregateByYear();
-
-        let bestYear = dataset[0];
-        for (let i = 1; i < dataset.length; i++) {
-            if (dataset[i].nombre > bestYear.nombre) bestYear = dataset[i];
-        }
-
-        return bestYear.annais;
-    }
-
-    /**
      * Returns a new Dataset with the rows sorted by the number of births
      * @returns A new Dataset with the rows sorted by the number of births
      */
@@ -361,6 +305,71 @@ export class Dataset {
         const sortedCSV = this.csv.sort((a, b) => b.nombre - a.nombre);
 
         return new Dataset(sortedCSV);
+    }
+
+    getPercentageByYearForNames(names: string[]): Map<string, Map<number, number>> {
+        if (this.csv === null) throw new Error("CSV was not loaded when sumByYearForNames was called");
+
+        const uppercasedNames = names.map((name) => {
+            return name.toUpperCase();
+        });
+
+        const filteredCSV = this.csv.filter((row) => {
+            return uppercasedNames.includes(row.preusuel);
+        });
+
+        const accrossYears = filteredCSV.reduce((acc, cur) => {
+            if (!acc.has(cur.preusuel)) {
+                acc.set(cur.preusuel, new Map<number, number>());
+            }
+            const map = acc.get(cur.preusuel) as Map<number, number>;
+            if (!map.has(cur.annais)) {
+                map.set(cur.annais, 0);
+            }
+            map.set(cur.annais, map.get(cur.annais) as number + cur.nombre);
+            return acc;
+        }, new Map<string, Map<number, number>>());
+
+        const percentages = new Map<string, Map<number, number>>();
+
+        for (const [name, map] of accrossYears.entries()) {
+            const totalBirths = Array.from(map.values()).reduce((acc, cur) => acc + cur, 0);
+            const percentageMap = new Map<number, number>();
+            for (const [year, births] of map.entries()) {
+                percentageMap.set(year, births / totalBirths * 100);
+            }
+            percentages.set(name, percentageMap);
+        }
+
+        return percentages;
+    }
+
+    getPercentageByYearForName(name: string): Map<number, number> {
+        if (this.csv === null) throw new Error("CSV was not loaded when sumByYearForName was called");
+
+        const uppercasedName = name.toUpperCase();
+
+        const filteredCSV = this.csv.filter((row) => {
+            return row.preusuel === uppercasedName;
+        });
+
+        const accrossYears = filteredCSV.reduce((acc, cur) => {
+            if (!acc.has(cur.annais)) {
+                acc.set(cur.annais, 0);
+            }
+            acc.set(cur.annais, acc.get(cur.annais) as number + cur.nombre);
+            return acc;
+        }, new Map<number, number>());
+
+        const totalBirths = Array.from(accrossYears.values()).reduce((acc, cur) => acc + cur, 0);
+
+        const percentages = new Map<number, number>();
+
+        for (const [year, births] of accrossYears.entries()) {
+            percentages.set(year, births / totalBirths * 100);
+        }
+
+        return percentages;
     }
 
     /**
@@ -464,110 +473,6 @@ export class Dataset {
         });
 
         return new Dataset(copiedCSV);
-    }
-
-    getNamesPopularity(): NamePopularity[] {
-        const namesPopularity: NamePopularity[] = [];
-        const map = new Map<string, number>();
-
-        if (this.csv === null) throw new Error("CSV was not loaded when getNamesPopularity was called");
-        const data = this.csv;
-        data.forEach((d) => {
-            const name = d.preusuel;
-            const year = d.annais;
-            const numberOfBirths = d.nombre;
-
-            const key = name + ' ' + year;
-            if (map.has(key)) {
-                const currentBirth = map.get(key);
-                if (currentBirth === undefined) return;
-                map.set(key, currentBirth + numberOfBirths);
-            } else {
-                map.set(key, numberOfBirths);
-            }
-        });
-
-        const MIN_YEAR = 1900;
-        const MAX_YEAR = 2019;
-
-        for (let cyear = MIN_YEAR; cyear <= MAX_YEAR; cyear++) {
-            const mapByYear = new Map<string, number>();
-            // This time, it's for a given year, so the key is the name itself
-            map.forEach((value, key) => {
-                    const splitted = key.split(" ", 2);
-                    const name = splitted[0];
-                    const year = +splitted[1];
-                    if (year === cyear) {
-                        if (mapByYear.has(name)) {
-                            const mbY = mapByYear.get(name);
-                            if (mbY === undefined) return;
-                            mapByYear.set(name, mbY + value);
-                        } else {
-                            mapByYear.set(name, value);
-                        }
-                    }
-                }
-            );
-
-            // Get the most popular name for this year
-            let max = 0;
-            let maxName = "";
-            let sum = 0;
-            mapByYear.forEach((value, key) => {
-                if (value > max) {
-                    max = value;
-                    maxName = key;
-                }
-                sum += value;
-            });
-
-            // Now, we can compute the percentage
-            const percentage = max / sum;
-            namesPopularity.push({
-                year: cyear,
-                name: maxName,
-                percentage: 100 * percentage
-            });
-        }
-        return namesPopularity;
-    }
-
-    getNamesPopularityForSeveralNames(names: string[]): NamePopularity[] {
-
-        const namesPopularity: NamePopularity[] = [];
-
-
-        if (this.csv === null) throw new Error("CSV was not loaded when getNamesPopularity was called");
-        const data = this.csv;
-        const totalBirthPerYear = new Map<number, number>();
-
-        data.forEach((d) => {
-            if (totalBirthPerYear.has(d.annais)) {
-                const currentTotal = totalBirthPerYear.get(d.annais);
-                if (currentTotal === undefined) return;
-                totalBirthPerYear.set(d.annais, currentTotal + d.nombre);
-            } else {
-                totalBirthPerYear.set(d.annais, d.nombre);
-            }
-        });
-
-        data.forEach((d) => {
-            const name = d.preusuel;
-            if (names.indexOf(name) > -1) {
-                const year = d.annais;
-                const number = d.nombre;
-                if (totalBirthPerYear.has(year)) {
-                    const machin = totalBirthPerYear.get(year);
-                    if (machin === undefined) return;
-                    namesPopularity.push({
-                        year: year,
-                        name: name,
-                        percentage: number / machin,
-                    })
-                }
-            }
-        });
-        return namesPopularity;
     }
 }
 
