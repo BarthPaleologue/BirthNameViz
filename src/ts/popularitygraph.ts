@@ -31,7 +31,7 @@ export class PopularityGraph {
             .append("rect")
             .attr("x", (d, i) => x(d.year))
             .attr("y", (d, i) => 350 - y(d.percentage))
-            .attr("width", 0.9*800 / (MAX_YEAR - MIN_YEAR))
+            .attr("width", 0.9 * 800 / (MAX_YEAR - MIN_YEAR))
             .attr("height", (d, i) => y(d.percentage))
             .attr("fill", "blue");
 
@@ -86,7 +86,7 @@ export class PopularityGraph {
     }
 }
 
-export class popularityCurve{
+export class popularityCurve {
 
     // popularity curve
 
@@ -108,6 +108,10 @@ export class popularityCurve{
 
         // Create a curve graph
 
+
+        // ...
+
+        return svg;
 
     }
 

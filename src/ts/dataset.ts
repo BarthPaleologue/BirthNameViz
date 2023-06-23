@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { RegionName, getRegionFromDepartement } from "./region";
+import {RegionName, getRegionFromDepartement} from "./region";
 import {map} from "d3";
 
 /**
@@ -465,7 +465,8 @@ export class Dataset {
 
         return new Dataset(copiedCSV);
     }
-    getNamesPopularity() : NamePopularity[] {
+
+    getNamesPopularity(): NamePopularity[] {
         const namesPopularity: NamePopularity[] = [];
         const map = new Map<string, number>();
 
@@ -477,10 +478,10 @@ export class Dataset {
             const numberOfBirths = d.nombre;
 
             const key = name + ' ' + year;
-            if (map.has(key) && map.get(key) !== undefined) {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                map.set(key, map.get(key) + numberOfBirths);
+            if (map.has(key)) {
+                const currentBirth = map.get(key);
+                if (currentBirth === undefined) return;
+                map.set(key, currentBirth + numberOfBirths);
             } else {
                 map.set(key, numberOfBirths);
             }
@@ -497,10 +498,10 @@ export class Dataset {
                     const name = splitted[0];
                     const year = +splitted[1];
                     if (year === cyear) {
-                        if (mapByYear.has(name) && mapByYear.get(name) !== undefined) {
-                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                            // @ts-ignore
-                            mapByYear.set(name, mapByYear.get(name) + value);
+                        if (mapByYear.has(name)) {
+                            const mbY = mapByYear.get(name);
+                            if (mbY === undefined) return;
+                            mapByYear.set(name, mbY + value);
                         } else {
                             mapByYear.set(name, value);
                         }
@@ -525,13 +526,13 @@ export class Dataset {
             namesPopularity.push({
                 year: cyear,
                 name: maxName,
-                percentage: 100*percentage
+                percentage: 100 * percentage
             });
         }
         return namesPopularity;
     }
 
-    getNamesPopularityForSeveralNames(names: string[]) : NamePopularity[] {
+    getNamesPopularityForSeveralNames(names: string[]): NamePopularity[] {
 
         const namesPopularity: NamePopularity[] = [];
 
@@ -541,10 +542,10 @@ export class Dataset {
         const totalBirthPerYear = new Map<number, number>();
 
         data.forEach((d) => {
-            if (totalBirthPerYear.has(d.annais) && totalBirthPerYear.get(d.annais) !== undefined){
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                totalBirthPerYear.set(d.annais, totalBirthPerYear.get(d.annais) + d.nombre);
+            if (totalBirthPerYear.has(d.annais)) {
+                const currentTotal = totalBirthPerYear.get(d.annais);
+                if (currentTotal === undefined) return;
+                totalBirthPerYear.set(d.annais, currentTotal + d.nombre);
             } else {
                 totalBirthPerYear.set(d.annais, d.nombre);
             }
@@ -552,16 +553,16 @@ export class Dataset {
 
         data.forEach((d) => {
             const name = d.preusuel;
-            if (names.indexOf(name) > -1 ) {
+            if (names.indexOf(name) > -1) {
                 const year = d.annais;
                 const number = d.nombre;
-                if (totalBirthPerYear.has(year) && totalBirthPerYear.get(year) !== undefined) {
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
+                if (totalBirthPerYear.has(year)) {
+                    const machin = totalBirthPerYear.get(year);
+                    if (machin === undefined) return;
                     namesPopularity.push({
                         year: year,
                         name: name,
-                        percentage: number / totalBirthPerYear.get(year),
+                        percentage: number / machin,
                     })
                 }
             }
