@@ -5,9 +5,13 @@
 
 This is the repository to our project of IGR204. The goal is to create interactable visualizations around the names of french babies between 1900 and 2019.
 
+![Interactive map](image.png)
+
 ## Links for json maps
 
 https://github.com/gregoiredavid/france-geojson
+
+Maps are to be simplified with https://mapshaper.org/Visvalingam2014/ and not the original mapshaper
 
 
 ## Strength and Weaknesses of our Visualizations

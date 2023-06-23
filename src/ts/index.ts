@@ -26,10 +26,19 @@ const data = dataset.toArray();
 
 console.log(data[0]);
 
-const map = new InteractiveMap(dataset, 1960, 2015);
+const DEFAULT_MIN_YEAR = 1970;
+const DEFAULT_MAX_YEAR = 1981;
+
+const map = new InteractiveMap(dataset, DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR);
 window.map = map;
 
-const selectors = new SliderSelector(map);
+const selectors = new SliderSelector(DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR);
 window.selectors = selectors;
+selectors.addOnYearRangeChangeCallback((minYear: number, maxYear: number) => {
+    map.updateYearRange(minYear, maxYear);
+});
+selectors.addOnNameChangeCallback((name: string | null) => {
+    map.filterByName(name);
+});
 
 document.querySelector("#loader")?.remove();

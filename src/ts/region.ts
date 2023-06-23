@@ -29,7 +29,7 @@ export enum RegionName {
     Guyane,
     LaRéunion,
     Mayotte
-};
+}
 
 export function parseRegionName(regionName: string): RegionName {
     switch (regionName) {
