@@ -5,6 +5,7 @@ import { Dataset, Sex } from './dataset';
 import { InteractiveMap } from './map';
 import { SliderSelector} from './selectors';
 import "./window";
+import {PopularityGraph} from "./popularitygraph";
 
 // most of this code comes from https://www.datavis.fr/d3js/map-firststep
 
@@ -40,5 +41,7 @@ selectors.addOnYearRangeChangeCallback((minYear: number, maxYear: number) => {
 selectors.addOnNameChangeCallback((name: string | null) => {
     map.filterByName(name);
 });
+
+const histopopularity = new PopularityGraph(dataset.getNamesPopularity());
 
 document.querySelector("#loader")?.remove();
