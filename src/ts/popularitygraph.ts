@@ -109,6 +109,10 @@ export class popularityCurve{
         // Create a curve graph
 
 
+        // ...
+
+        return svg;
+
     }
 
 }
