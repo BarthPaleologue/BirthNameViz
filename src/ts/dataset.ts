@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import { RegionName, getRegionFromDepartement } from "./region";
+import {map} from "d3";
 
 /**
  * Represents a row in the raw CSV file
@@ -527,6 +528,44 @@ export class Dataset {
                 percentage: 100*percentage
             });
         }
+        return namesPopularity;
+    }
+
+    getNamesPopularityForSeveralNames(names: string[]) : NamePopularity[] {
+
+        const namesPopularity: NamePopularity[] = [];
+
+
+        if (this.csv === null) throw new Error("CSV was not loaded when getNamesPopularity was called");
+        const data = this.csv;
+        const totalBirthPerYear = new Map<number, number>();
+
+        data.forEach((d) => {
+            if (totalBirthPerYear.has(d.annais) && totalBirthPerYear.get(d.annais) !== undefined){
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                totalBirthPerYear.set(d.annais, totalBirthPerYear.get(d.annais) + d.nombre);
+            } else {
+                totalBirthPerYear.set(d.annais, d.nombre);
+            }
+        });
+
+        data.forEach((d) => {
+            const name = d.preusuel;
+            if (names.indexOf(name) > -1 ) {
+                const year = d.annais;
+                const number = d.nombre;
+                if (totalBirthPerYear.has(year) && totalBirthPerYear.get(year) !== undefined) {
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    namesPopularity.push({
+                        year: year,
+                        name: name,
+                        percentage: number / totalBirthPerYear.get(year),
+                    })
+                }
+            }
+        });
         return namesPopularity;
     }
 }

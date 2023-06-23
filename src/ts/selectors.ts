@@ -145,6 +145,8 @@ export class SliderSelector {
         const frac = (mid - this.minYear) / (this.maxYear - this.minYear);
         this.updateWidth(frac);
         console.log(mid, frac, min, max);
+        this.leftPerSel.attr('min', -mid); //Update the max value of the left range input
+        this.rightPerSel.attr('min', mid); //Update the min value of the left range input
 
         //Update the value
         this.minYearSelected = min;
@@ -153,9 +155,6 @@ export class SliderSelector {
         this.rightPerSel.property('value', max);
         this.leftYear.html(min.toString());
         this.rightYear.html(max.toString());
-
-        this.leftPerSel.attr('min', -mid); //Update the max value of the left range input
-        this.rightPerSel.attr('min', mid); //Update the min value of the left range input
 
         this.dispatchYearRangeCallbacks();
     }
