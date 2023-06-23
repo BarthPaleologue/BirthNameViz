@@ -36,7 +36,13 @@ export class SliderSelector {
         panel.append("h2")
             .html("Filter by year");
 
-        const periodSel = panel.append("div").attr("class", "rangeContainer");
+        const rangeAndPlayContainer = panel.append("div").attr("class", "rangeAndPlayContainer");
+        const playButton = rangeAndPlayContainer.append("button")
+            .attr("id", "playButton")
+            .attr("type", "button")
+            .html("Play");
+
+        const periodSel = rangeAndPlayContainer.append("div").attr("class", "rangeContainer");
         const labels = panel.append("div").attr("class", "rangeLabelContainer");
 
         this.leftPerSel = periodSel.append("input")

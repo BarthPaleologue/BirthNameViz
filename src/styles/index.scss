@@ -47,6 +47,17 @@ $border-radius: 5px;
         }
     }
 
+
+    .rangeAndPlayContainer {
+        display: grid;
+        grid-template-columns: 50px auto;
+        align-items: center;
+
+        button {
+            height: 30px;
+        }
+    }
+
     .rangeContainer {
         padding: 10px;
         input[type=range] {
