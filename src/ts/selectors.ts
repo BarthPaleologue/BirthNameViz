@@ -58,9 +58,11 @@ export class SliderSelector {
                     this.animationInterval = setInterval(() => {
                         const min = this.minYearSelected;
                         const max = this.maxYearSelected;
+                        console.log("MinMax", min, max);
 
                         const newMin = Math.min(MAX_YEAR, min + 1);
                         const newMax = Math.min(MAX_YEAR, max + 1);
+                        console.log("SafeMinMax", newMin, newMax);
 
                         if(newMax === MAX_YEAR && this.animationInterval !== null) {
                             clearInterval(this.animationInterval);
@@ -169,7 +171,7 @@ export class SliderSelector {
     }
 
     private rightHandleClick(): void {
-        this.minYearSelected = -this.leftPerSel.property('value'); //Save the value of the left input
+        this.minYearSelected = -Number(this.leftPerSel.property('value')); //Save the value of the left input
         this.leftPerSel.property('value', this.leftPerSel.attr('min'))//Set the left range input to the maximum value
         const frac = (this.minYearSelected - this.minYear) / (this.maxYear - this.minYear);
         this.rightPerSel.attr('min', this.minYearSelected); //Set the minimum value of the right range input to the left selected year
@@ -194,7 +196,7 @@ export class SliderSelector {
 
     private mouseUpLeftHandler(): void {
         this.rightPerSel.property('value', this.maxYearSelected);
-        this.minYearSelected = -this.leftPerSel.property('value'); //Save the value selected
+        this.minYearSelected = -Number(this.leftPerSel.property('value')); //Save the value selected
         const mid = Math.round((Number(this.minYearSelected) + Number(this.maxYearSelected)) / 2);
         const frac = (mid - this.minYear) / (this.maxYear - this.minYear);
         this.rightPerSel.attr('min', mid);
@@ -214,7 +216,7 @@ export class SliderSelector {
 
     private mouseUpRightHandler(): void {
         this.leftPerSel.property('value', -this.minYearSelected);
-        this.maxYearSelected = this.rightPerSel.property('value');//Save the value selected
+        this.maxYearSelected = Number(this.rightPerSel.property('value'));//Save the value selected
         const mid = Math.round((Number(this.minYearSelected) + Number(this.maxYearSelected)) / 2);
         const frac = (mid - this.minYear) / (this.maxYear - this.minYear);
         this.leftPerSel.attr('min', -mid);
