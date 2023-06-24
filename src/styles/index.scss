@@ -1,5 +1,10 @@
 $border-radius: 5px;
 
+body {
+    overflow: hidden;
+    font-family: sans-serif;
+}
+
 .region {
     stroke: rgb(255, 255, 255);
     transition: .2s;
@@ -11,15 +16,13 @@ $border-radius: 5px;
 }
 
 #viz {
-    display: grid;
-    //grid-auto-flow: column;
-    //grid-template-columns: 1fr;
-    //grid-template-rows: 250px auto;
     column-gap: 10px;
     row-gap: 10px;
     height: 100vh;
-    // template 2 in first columns and 2 per row
-    grid-template-areas: "#selectors #selectors"
+
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: 250px auto;
 }
 
 .panel {
@@ -29,7 +32,15 @@ $border-radius: 5px;
     padding: 10px;
 
     &#selectors {
-        width: 800px;
+        grid-area: 1 / 1 / 2 / 2;
+    }
+
+    &#mapPanel {
+        grid-area: 1 / 2 / 3 / 3;
+    }
+
+    &#popularityPanel {
+        grid-area: 2 / 1 / 3 / 2;
     }
 
     h2 {

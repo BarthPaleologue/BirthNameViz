@@ -18,6 +18,9 @@ export class PopularityGraph {
     private minYear: number;
     private maxYear: number;
 
+    private readonly width = (window.innerWidth - 70) / 2;
+    private readonly height = 400;
+
     constructor(dataset: Dataset, minYear: number, maxYear: number) {
         this.dataset = dataset;
 
@@ -39,19 +42,20 @@ export class PopularityGraph {
 
         // We create the svg element
         this.svg = d3.select("#viz").append("svg")
+            .attr("id", "popularityPanel")
             .attr("class", "panel")
-            .attr("width", 800)
-            .attr("height", 350);
+            .attr("width", this.width)
+            .attr("height", this.height);
 
         // We create the x axis
         this.x = d3.scaleLinear()
             .domain([MIN_YEAR, MAX_YEAR])
-            .range([0, 800]);
+            .range([0, this.width - 50]);
 
         // We create the y axis
         this.y = d3.scaleLinear()
             .domain([0, 100])
-            .range([0, 350]);
+            .range([0, this.height - 100]);
 
         // Add a rect for each yearHow do baby names evolve over time? Are there names that have consistently remained popular or unpopular? Are there some that have were suddenly or briefly popular or unpopular? Are there trends in time
         this.svg.selectAll("rect")
@@ -70,7 +74,7 @@ export class PopularityGraph {
             .call(d3.axisBottom(this.x));
         this.svg.append("text")
             .attr("x", 400)
-            .attr("y", 350)
+            .attr("y", 390)
             .attr("text-anchor", "middle")
             .text("Année");
 
@@ -96,10 +100,12 @@ export class PopularityGraph {
         this.svg.selectAll("rect")
             .data(this.popularity)
             .on("mouseover", (e: MouseEvent, d) => {
-                this.svg.append("text")
+                d3.select('#tooltip').remove();
+                d3.select("body").append("p")
                     .attr("id", "tooltip")
-                    .attr("x", e.clientX)
-                    .attr("y", 350 - e.clientY - 10)
+                    .style("position", "absolute")
+                    .style("left", (e.pageX + 10) + "px")
+                    .style("top", (e.pageY - 10) + "px")
                     .attr("text-anchor", "middle")
                     .text(this.filteredName + ": " + d[1].toFixed(2) + "%" + "année: " + d[0]);
                 console.log(this.filteredName + " : " + d[1].toFixed(2) + "%" + "année: " + d[0]);

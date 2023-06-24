@@ -58,11 +58,9 @@ export class SliderSelector {
                     this.animationInterval = setInterval(() => {
                         const min = this.minYearSelected;
                         const max = this.maxYearSelected;
-                        console.log("MinMax", min, max);
 
                         const newMin = Math.min(MAX_YEAR, min + 1);
                         const newMax = Math.min(MAX_YEAR, max + 1);
-                        console.log("SafeMinMax", newMin, newMax);
 
                         if(newMax === MAX_YEAR && this.animationInterval !== null) {
                             clearInterval(this.animationInterval);

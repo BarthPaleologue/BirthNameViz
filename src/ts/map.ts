@@ -9,8 +9,8 @@ enum MapMode {
 }
 
 export class InteractiveMap {
-    private readonly width = 800;
-    private readonly height = 800;
+    private readonly width = (window.innerWidth - 70) / 2;
+    private readonly height = window.innerHeight - 35;
 
     private minYear: number;
     private maxYear: number;
@@ -39,7 +39,7 @@ export class InteractiveMap {
         this.maxYear = maxYear;
 
         const svg = d3.select('#viz').append("svg")
-            .attr("id", "svg")
+            .attr("id", "mapPanel")
             .attr("class", "panel")
             .attr("width", this.width)
             .attr("height", this.height);
@@ -49,7 +49,7 @@ export class InteractiveMap {
         const projection = d3.geoConicConformal()
             .center([2.454071, 46.279229])
             .fitSize([this.width, this.height], regions as any)
-            .scale(4000)
+            .scale(4500)
             .translate([this.width / 2, this.height / 2]);
 
         path.projection(projection);
@@ -164,8 +164,6 @@ export class InteractiveMap {
                 this.colorPalette.push(color);
             }
         }
-
-        console.log("Persisted:", this.nameToColor.size);
 
         for (const name of bestNames) {
             if (this.nameToColor.has(name)) continue;
