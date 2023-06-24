@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { Region, regions } from "./loadRegionMapData";
 import { Dataset, Sex } from "./dataset";
-import { parseRegionName } from "./region";
+import { RegionName, parseRegionName } from "./region";
 
 enum MapMode {
     BestName,
@@ -32,6 +32,9 @@ export class InteractiveMap {
     private colorPalette = ["#5f86b7", "#48a421", "#b25aed", "#6f7d43", "#f90da0", "#0ba47e", "#eb1241", "#bd854a", "#6778f5", "#e96c2e"];
     private nameToColor = new Map<string, string>();
 
+    private focusedRegion: RegionName | null = null;
+    private onFocusedRegionChangedCallbacks: ((region: RegionName | null) => void)[] = [];
+
     constructor(dataset: Dataset, minYear: number, maxYear: number) {
 
         this.dataset = dataset;
@@ -56,8 +59,6 @@ export class InteractiveMap {
 
         const regionMap = svg.append("g");
 
-        let focusedRegion: Region | null = null;
-
         this.regionContainers = regionMap.selectAll(".regionContainer")
             .data(regions.features);
 
@@ -73,8 +74,8 @@ export class InteractiveMap {
             .attr("class", (d: Region) => `${d.properties.nom} region`)
             .attr("id", (d: Region) => "d" + d.properties.code)
             .on("click", (e: PointerEvent, d: Region) => {
-                if (focusedRegion === d) {
-                    focusedRegion = null;
+                if (this.focusedRegion === parseRegionName(d.properties.nom)) {
+                    this.focusedRegion = null;
 
                     // zoom out
                     regionMap.transition()
@@ -86,8 +87,10 @@ export class InteractiveMap {
                         .transition()
                         .duration(750)
                         .attr("font-size", "12px");
+
+                    this.dispatchOnFocusedRegionChanged();
                 } else {
-                    focusedRegion = d;
+                    this.focusedRegion = parseRegionName(d.properties.nom);
 
                     // zoom on the clicked region
                     const bounds = path.bounds(d as any);
@@ -108,6 +111,8 @@ export class InteractiveMap {
                         .transition()
                         .duration(750)
                         .attr("font-size", "5px");
+
+                    this.dispatchOnFocusedRegionChanged();
                 }
             });
 
@@ -249,5 +254,15 @@ export class InteractiveMap {
                     return `${ranking}e / ${nameCount}`;
                 }
             });
+    }
+
+    public addOnFocusedRegionChangedCallback(callback: (region: RegionName | null) => void) {
+        this.onFocusedRegionChangedCallbacks.push(callback);
+    }
+
+    private dispatchOnFocusedRegionChanged() {
+        for (const callback of this.onFocusedRegionChangedCallbacks) {
+            callback(this.focusedRegion);
+        }
     }
 }

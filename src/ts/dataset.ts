@@ -66,6 +66,13 @@ export class Dataset {
     // This is big brain time
     private filteredByRegionByYear: Map<RegionName, Map<number, DataRow[]>> | null = null;
 
+    // stores totalBirth for name for each year for each name
+    private nationalNumberByYearForName: Map<string, Map<number, number>> | null = null;
+    private nationalNumberByYear: Map<number, number> | null = null;
+
+    private regionalNumberByYearForName: Map<string, Map<RegionName, Map<number, number>>> | null = null;
+    private regionalNumberByYear: Map<RegionName, Map<number, number>> | null = null;
+
     constructor(data: DataRow[] | null = null) {
         this.csv = data;
     }
@@ -125,6 +132,12 @@ export class Dataset {
         this.filteredByYear = new Map();
         this.filteredByRegionByYear = new Map();
 
+        this.nationalNumberByYearForName = new Map();
+        this.nationalNumberByYear = new Map();
+
+        this.regionalNumberByYearForName = new Map();
+        this.regionalNumberByYear = new Map();
+
         for (const row of this.csv) {
             if (!this.filteredByYear.has(row.annais)) {
                 this.filteredByYear.set(row.annais, []);
@@ -138,6 +151,38 @@ export class Dataset {
                 this.filteredByRegionByYear.get(row.region)?.set(row.annais, []);
             }
             this.filteredByRegionByYear.get(row.region)?.get(row.annais)?.push(row);
+
+            if (!this.nationalNumberByYearForName?.has(row.preusuel)) {
+                this.nationalNumberByYearForName?.set(row.preusuel, new Map());
+            }
+            if (!this.nationalNumberByYearForName?.get(row.preusuel)?.has(row.annais)) {
+                this.nationalNumberByYearForName?.get(row.preusuel)?.set(row.annais, 0);
+            }
+            this.nationalNumberByYearForName?.get(row.preusuel)?.set(row.annais, this.nationalNumberByYearForName?.get(row.preusuel)?.get(row.annais) as number + row.nombre);
+
+            if (!this.nationalNumberByYear?.has(row.annais)) {
+                this.nationalNumberByYear?.set(row.annais, 0);
+            }
+            this.nationalNumberByYear?.set(row.annais, this.nationalNumberByYear?.get(row.annais) as number + row.nombre);
+
+            if(!this.regionalNumberByYearForName?.has(row.preusuel)) {
+                this.regionalNumberByYearForName?.set(row.preusuel, new Map());
+            }
+            if(!this.regionalNumberByYearForName?.get(row.preusuel)?.has(row.region)) {
+                this.regionalNumberByYearForName?.get(row.preusuel)?.set(row.region, new Map());
+            }
+            if(!this.regionalNumberByYearForName?.get(row.preusuel)?.get(row.region)?.has(row.annais)) {
+                this.regionalNumberByYearForName?.get(row.preusuel)?.get(row.region)?.set(row.annais, 0);
+            }
+            this.regionalNumberByYearForName?.get(row.preusuel)?.get(row.region)?.set(row.annais, this.regionalNumberByYearForName?.get(row.preusuel)?.get(row.region)?.get(row.annais) as number + row.nombre);
+
+            if(!this.regionalNumberByYear?.has(row.region)) {
+                this.regionalNumberByYear?.set(row.region, new Map());
+            }
+            if(!this.regionalNumberByYear?.get(row.region)?.has(row.annais)) {
+                this.regionalNumberByYear?.get(row.region)?.set(row.annais, 0);
+            }
+            this.regionalNumberByYear?.get(row.region)?.set(row.annais, this.regionalNumberByYear?.get(row.region)?.get(row.annais) as number + row.nombre);
         }
 
         console.log("Optimization done");
@@ -310,13 +355,9 @@ export class Dataset {
     getPercentageByYearForNames(names: string[]): Map<string, Map<number, number>> {
         if (this.csv === null) throw new Error("CSV was not loaded when sumByYearForNames was called");
 
-        const uppercasedNames = names.map((name) => {
-            return name.toUpperCase();
-        });
+        const uppercasedNames = names.map((name) => name.toUpperCase());
 
-        const filteredCSV = this.csv.filter((row) => {
-            return uppercasedNames.includes(row.preusuel);
-        });
+        const filteredCSV = this.csv.filter((row) => uppercasedNames.includes(row.preusuel));
 
         const accrossYears = filteredCSV.reduce((acc, cur) => {
             if (!acc.has(cur.preusuel)) {
@@ -344,30 +385,44 @@ export class Dataset {
         return percentages;
     }
 
-    getPercentageByYearForName(name: string): Map<number, number> {
-        if (this.csv === null) throw new Error("CSV was not loaded when sumByYearForName was called");
+    getNationalPercentageByYearForName(name: string): Map<number, number> {
+        if (this.csv === null) throw new Error("CSV was not loaded when getNationalPercentageByYearForName was called");
+        if (this.nationalNumberByYearForName === null) throw new Error("Dataset was not optimized when getNationalPercentageByYearForName was called. Please call optimize() before calling this function to not kill the performance.");
+        if (this.nationalNumberByYear === null) throw new Error("Dataset was not optimized when getNationalPercentageByYearForName was called. Please call optimize() before calling this function to not kill the performance.");
 
-        const uppercasedName = name.toUpperCase();
-
-        const filteredCSV = this.csv.filter((row) => {
-            return row.preusuel === uppercasedName;
-        });
-
-        const accrossYears = filteredCSV.reduce((acc, cur) => {
-            if (!acc.has(cur.annais)) {
-                acc.set(cur.annais, 0);
-            }
-            acc.set(cur.annais, acc.get(cur.annais) as number + cur.nombre);
-            return acc;
-        }, new Map<number, number>());
-
-        const totalBirths = Array.from(accrossYears.values()).reduce((acc, cur) => acc + cur, 0);
+        const nationalNumberByYear = this.nationalNumberByYearForName.get(name.toUpperCase());
+        const totalNumberByYear = this.nationalNumberByYear;
 
         const percentages = new Map<number, number>();
-
-        for (const [year, births] of accrossYears.entries()) {
-            percentages.set(year, births / totalBirths * 100);
+        for(const [year, number] of nationalNumberByYear?.entries() ?? []) {
+            const totalNumber = totalNumberByYear?.get(year) as number;
+            percentages.set(year, number / totalNumber);
         }
+
+        return percentages;
+    }
+
+    getPercentageByRegionByYearForName(name: string): Map<RegionName, Map<number, number>> {
+        if (this.csv === null) throw new Error("CSV was not loaded when getPercentageByRegionByYearForName was called");
+        if (this.filteredByRegionByYear === null) throw new Error("Dataset was not optimized when getPercentageByRegionByYearForName was called. Please call optimize() before calling this function to not kill the performance.");
+
+        const regionalNumber = this.regionalNumberByYearForName?.get(name.toUpperCase());
+        const regionalTotalNumber = this.regionalNumberByYear;
+
+        console.log(regionalNumber);
+        console.log(regionalTotalNumber);
+
+        const percentages = new Map<RegionName, Map<number, number>>();
+        for(const [region, yearMap] of regionalNumber?.entries() ?? []) {
+            const percentageMap = new Map<number, number>();
+            for(const [year, number] of yearMap.entries()) {
+                const totalNumber = regionalTotalNumber?.get(region)?.get(year) as number;
+                percentageMap.set(year, number / totalNumber);
+            }
+            percentages.set(region, percentageMap);
+        }
+
+        console.log(percentages);
 
         return percentages;
     }

@@ -174,3 +174,10 @@ body {
     font-family: sans-serif;
     font-size: 200%;
 }
+
+rect {
+    &:hover {
+        fill: red;
+        stroke: black;
+    }
+}

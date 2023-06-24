@@ -6,6 +6,7 @@ import { InteractiveMap } from './map';
 import { SliderSelector} from './selectors';
 import "./window";
 import {PopularityGraph} from "./popularitygraph";
+import { RegionName } from './region';
 
 // most of this code comes from https://www.datavis.fr/d3js/map-firststep
 
@@ -16,10 +17,6 @@ await dataset.loadCSV(birthNamesCSV);
 dataset.optimize();
 
 console.log(dataset.filterByYearRange(1990, 2015).filterByDepartement(75).filterByName("Daniel").toArray());
-
-const data = dataset.toArray();
-
-console.log(data[0]);
 
 const DEFAULT_MIN_YEAR = 1970;
 const DEFAULT_MAX_YEAR = 1981;
@@ -42,6 +39,10 @@ selectors.addOnYearRangeChangeCallback((minYear: number, maxYear: number) => {
 });
 selectors.addOnNameChangeCallback((name: string | null) => {
     map.filterByName(name);
+});
+
+map.addOnFocusedRegionChangedCallback((region: RegionName | null) => {
+    histopopularity.filterByRegion(region);
 });
 
 document.querySelector("#loader")?.remove();
