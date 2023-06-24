@@ -4,19 +4,25 @@ import { MAX_YEAR, MIN_YEAR } from "./settings";
 
 // Create a graph class that will be used to create the popularity graph with d3
 export class PopularityGraph {
-    dataset: Dataset;
+    private dataset: Dataset;
 
-    filteredName: string | null = null;
+    private filteredName: string | null = null;
 
-    popularity: Map<number, number> = new Map<number, number>();
+    private popularity: Map<number, number> = new Map<number, number>();
 
-    svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
+    private svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
 
-    x: d3.ScaleLinear<number, number, never>;
-    y: d3.ScaleLinear<number, number, never>;
+    private x: d3.ScaleLinear<number, number, never>;
+    private y: d3.ScaleLinear<number, number, never>;
 
-    constructor(dataset: Dataset) {
+    private minYear: number;
+    private maxYear: number;
+
+    constructor(dataset: Dataset, minYear: number, maxYear: number) {
         this.dataset = dataset;
+
+        this.minYear = minYear;
+        this.maxYear = maxYear;
 
         this.filteredName = "Jean";
 
@@ -56,7 +62,7 @@ export class PopularityGraph {
             .attr("y", (d, i) => 350 - this.y(percentages[i]))
             .attr("width", 0.9 * 800 / (MAX_YEAR - MIN_YEAR))
             .attr("height", (d, i) => this.y(percentages[i]))
-            .attr("fill", "blue");
+            .attr("fill", (d, i) => (years[i] >= this.minYear && years[i] <= this.maxYear) ? "blue" : "grey");
 
         // Add the x axis and label
         this.svg.append("g")
@@ -106,6 +112,14 @@ export class PopularityGraph {
             });
     }
 
+    setYearRange(minYear: number, maxYear: number) {
+        if (this.minYear === minYear && this.maxYear === maxYear) return;
+        this.minYear = minYear;
+        this.maxYear = maxYear;
+
+        this.update();
+    }
+
     filterByName(name: string | null) {
         if (this.filteredName === name) return;
         if (name === null) name = "Jean";
@@ -113,6 +127,10 @@ export class PopularityGraph {
 
         this.popularity = this.dataset.getPercentageByYearForName(this.filteredName);
 
+        this.update();
+    }
+
+    private update() {
         const years = Array.from(this.popularity.keys());
         const percentages = Array.from(this.popularity.values()).map((v) => v);
 
@@ -128,7 +146,7 @@ export class PopularityGraph {
             .attr("y", (d, i) => 350 - this.y(percentages[i]))
             .attr("width", 0.9 * 800 / (MAX_YEAR - MIN_YEAR))
             .attr("height", (d, i) => this.y(percentages[i]))
-            .attr("fill", "blue");
+            .attr("fill", (d, i) => (years[i] >= this.minYear && years[i] <= this.maxYear) ? "blue" : "grey");
 
         this.svg.select(".popularity-title")
             .text(`Popularité du prénom ${this.filteredName}`);

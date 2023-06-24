@@ -27,9 +27,12 @@ const DEFAULT_MAX_YEAR = 1981;
 const selectors = new SliderSelector(DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR);
 window.selectors = selectors;
 
-const histopopularity = new PopularityGraph(dataset);
+const histopopularity = new PopularityGraph(dataset, DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR);
 selectors.addOnNameChangeCallback((name: string | null) => {
     histopopularity.filterByName(name);
+});
+selectors.addOnYearRangeChangeCallback((minYear: number, maxYear: number) => {
+    histopopularity.setYearRange(minYear, maxYear);
 });
 
 const map = new InteractiveMap(dataset, DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR);
