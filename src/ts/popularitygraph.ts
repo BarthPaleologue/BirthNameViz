@@ -113,7 +113,6 @@ export class PopularityGraph {
                     .style("top", (e.pageY - 10) + "px")
                     .attr("text-anchor", "middle")
                     .text(this.filteredName + ": " + d[1].toFixed(2) + "%" + "année: " + d[0]);
-                console.log(this.filteredName + " : " + d[1].toFixed(2) + "%" + "année: " + d[0]);
             })
 
         // Remove the tooltip when you stop hovering over the rectangle
@@ -171,8 +170,10 @@ export class PopularityGraph {
             percentages[i] = 100 * v / maxPercentage;
         });
 
+        const popularities = years.map((v, i) => [years[i], percentages[i]]);
+
         this.svg.selectAll("rect")
-            .data(popularity)
+            .data(popularities)
             .attr("x", (d, i) => this.x(years[i]))
             .attr("y", (d, i) => 350 - this.y(percentages[i]))
             .attr("width", 0.9 * 800 / (MAX_YEAR - MIN_YEAR))
