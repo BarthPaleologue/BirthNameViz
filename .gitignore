@@ -1,6 +1,5 @@
 .vscode
 node_modules
-dist
 .ipynb_checkpoints
 .idea
 coverage
