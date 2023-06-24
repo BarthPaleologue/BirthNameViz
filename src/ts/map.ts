@@ -25,6 +25,9 @@ export class InteractiveMap {
 
     private filteredName: string | null = null;
 
+    private coloredSex = Sex.Male;
+
+
     // see http://vrl.cs.brown.edu/color for good palettes
     private colorPalette = ["#5f86b7", "#48a421", "#b25aed", "#6f7d43", "#f90da0", "#0ba47e", "#eb1241", "#bd854a", "#6778f5", "#e96c2e"];
     private nameToColor = new Map<string, string>();
@@ -152,10 +155,7 @@ export class InteractiveMap {
         const bestMaleNames = bestNamesBothSex.map((d: [string, string]) => d[0]);
         const bestFemaleNames = bestNamesBothSex.map((d: [string, string]) => d[1]);
 
-
-        let currentSex = 1 > 0 ? Sex.Male : Sex.Female;
-
-        const bestNames = currentSex === Sex.Male ? bestMaleNames : bestFemaleNames;
+        const bestNames = this.coloredSex === Sex.Male ? bestMaleNames : bestFemaleNames;
 
         // iterate over nameToColor and remove the entries that are not in bestMaleNames or bestFemaleNames
         for (const [name, color] of this.nameToColor) {
@@ -181,7 +181,7 @@ export class InteractiveMap {
                 const bestMaleName = bestMaleNames[i];
                 const bestFemaleName = bestFemaleNames[i];
 
-                return this.nameToColor.get(currentSex === Sex.Male ? bestMaleName : bestFemaleName) as string;
+                return this.nameToColor.get(this.coloredSex === Sex.Male ? bestMaleName : bestFemaleName) as string;
             });
 
 
