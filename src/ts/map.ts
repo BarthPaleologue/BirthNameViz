@@ -25,13 +25,17 @@ export class InteractiveMap {
 
     private filteredName: string | null = null;
 
+    // see http://vrl.cs.brown.edu/color for good palettes
+    private colorPalette = ["#5f86b7", "#48a421", "#b25aed", "#6f7d43", "#f90da0", "#0ba47e", "#eb1241", "#bd854a", "#6778f5", "#e96c2e"];
+    private nameToColor = new Map<string, string>();
+
     constructor(dataset: Dataset, minYear: number, maxYear: number) {
 
         this.dataset = dataset;
         this.minYear = minYear;
         this.maxYear = maxYear;
 
-        const svg = d3.select('body').append("svg")
+        const svg = d3.select('#viz').append("svg")
             .attr("id", "svg")
             .attr("class", "panel")
             .attr("width", this.width)
@@ -138,43 +142,46 @@ export class InteractiveMap {
     }
 
     private updateBestNameRepresentation() {
-        const bestNames = regions.features.map((d: Region) => {
+        const bestNamesBothSex: [string, string][] = regions.features.map((d: Region) => {
             const filteredDataset = this.dataset.filterByRegionAndYearRange(parseRegionName(d.properties.nom), this.minYear, this.maxYear);
             const [bestMaleName, bestFemaleName] = filteredDataset.getBestMaleAndFemaleName();
 
             return [bestMaleName, bestFemaleName];
         });
 
-        // see http://vrl.cs.brown.edu/color for good palettes
-        const colorPalette = ["#b25aed", "#918cb4", "#239eb3", "#668e57", "#19a71f", "#577cf5", "#d76bac", "#f228a0"];
+        const bestMaleNames = bestNamesBothSex.map((d: [string, string]) => d[0]);
+        const bestFemaleNames = bestNamesBothSex.map((d: [string, string]) => d[1]);
 
-        const maleNameToColor = new Map<string, string>();
-        const femaleNameToColor = new Map<string, string>();
 
-        for (const [bestMaleName, bestFemaleName] of bestNames) {
-            if (!maleNameToColor.has(bestMaleName)) {
-                maleNameToColor.set(bestMaleName, colorPalette[maleNameToColor.size]);
-            }
-            if (!femaleNameToColor.has(bestFemaleName)) {
-                femaleNameToColor.set(bestFemaleName, colorPalette[femaleNameToColor.size]);
+        let currentSex = 1 > 0 ? Sex.Male : Sex.Female;
+
+        const bestNames = currentSex === Sex.Male ? bestMaleNames : bestFemaleNames;
+
+        // iterate over nameToColor and remove the entries that are not in bestMaleNames or bestFemaleNames
+        for (const [name, color] of this.nameToColor) {
+            if (!bestNames.includes(name)) {
+                this.nameToColor.delete(name);
+                this.colorPalette.push(color);
             }
         }
 
-        let currentSex: Sex;
-        currentSex = Sex.Male;
-        currentSex = Sex.Male;
+        console.log("Persisted:", this.nameToColor.size);
+
+        for (const name of bestNames) {
+            if (this.nameToColor.has(name)) continue;
+
+            const color = this.colorPalette.pop();
+            if (color === undefined) throw new Error("No more colors available");
+            this.nameToColor.set(name, color);
+        }
 
         d3.selectAll(".region")
             .data(regions.features)
-            .style("fill", function (d: Region, i: number) {
-                const [bestMaleName, bestFemaleName] = bestNames[i];
+            .style("fill", (d: Region, i: number) => {
+                const bestMaleName = bestMaleNames[i];
+                const bestFemaleName = bestFemaleNames[i];
 
-                switch (currentSex) {
-                    case Sex.Male:
-                        return maleNameToColor.get(bestMaleName) as string;
-                    case Sex.Female:
-                        return femaleNameToColor.get(bestFemaleName) as string;
-                }
+                return this.nameToColor.get(currentSex === Sex.Male ? bestMaleName : bestFemaleName) as string;
             });
 
 
@@ -182,7 +189,7 @@ export class InteractiveMap {
         d3.selectAll(".region-label")
             .data(regions.features)
             .html((d: Region, i: number) => {
-                const [bestMaleName, bestFemaleName] = bestNames[i];
+                const [bestMaleName, bestFemaleName] = bestNamesBothSex[i];
                 return `<tspan class="bestMaleName" x="${this.centroids[i].x}" dy="-1.2em">${bestMaleName}</tspan><tspan class="bestFemaleName" x="${this.centroids[i].x}" dy="1.2em">${bestFemaleName}</tspan>`;
             });
     }

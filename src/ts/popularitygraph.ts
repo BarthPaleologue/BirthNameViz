@@ -32,7 +32,8 @@ export class PopularityGraph {
         });
 
         // We create the svg element
-        this.svg = d3.select("body").append("svg")
+        this.svg = d3.select("#viz").append("svg")
+            .attr("class", "panel")
             .attr("width", 800)
             .attr("height", 350);
 
@@ -139,7 +140,7 @@ export class popularityCurve {
     // popularity curve
 
     constructor(namesPopularity: string[]) {
-        const svg = d3.select("body").append("svg")
+        const svg = d3.select("#viz").append("svg")
             .attr("width", 800)
             .attr("height", 350);
 

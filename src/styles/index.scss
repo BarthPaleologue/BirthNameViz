@@ -10,11 +10,22 @@ $border-radius: 5px;
     }
 }
 
+#viz {
+    display: grid;
+    //grid-auto-flow: column;
+    //grid-template-columns: 1fr;
+    //grid-template-rows: 250px auto;
+    column-gap: 10px;
+    row-gap: 10px;
+    height: 100vh;
+    // template 2 in first columns and 2 per row
+    grid-template-areas: "#selectors #selectors"
+}
+
 .panel {
     background: beige;
     border-radius: $border-radius;
     box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
-    margin-bottom: 10px;
     padding: 10px;
 
     &#selectors {
@@ -60,6 +71,7 @@ $border-radius: 5px;
 
     .rangeContainer {
         padding: 10px;
+
         input[type=range] {
             background-color: #ddd;
             box-shadow: none;

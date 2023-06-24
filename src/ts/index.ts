@@ -24,21 +24,21 @@ console.log(data[0]);
 const DEFAULT_MIN_YEAR = 1970;
 const DEFAULT_MAX_YEAR = 1981;
 
-const map = new InteractiveMap(dataset, DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR);
-window.map = map;
-
 const selectors = new SliderSelector(DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR);
 window.selectors = selectors;
+
+const histopopularity = new PopularityGraph(dataset);
+selectors.addOnNameChangeCallback((name: string | null) => {
+    histopopularity.filterByName(name);
+});
+
+const map = new InteractiveMap(dataset, DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR);
+window.map = map;
 selectors.addOnYearRangeChangeCallback((minYear: number, maxYear: number) => {
     map.updateYearRange(minYear, maxYear);
 });
 selectors.addOnNameChangeCallback((name: string | null) => {
     map.filterByName(name);
-});
-
-const histopopularity = new PopularityGraph(dataset);
-selectors.addOnNameChangeCallback((name: string | null) => {
-    histopopularity.filterByName(name);
 });
 
 document.querySelector("#loader")?.remove();

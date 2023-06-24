@@ -37,7 +37,7 @@ export class SliderSelector {
         this.minYearSelected = minYear;
         this.maxYearSelected = maxYear;
 
-        const panel = d3.select('body').append("div").lower()
+        const panel = d3.select('#viz').append("div").lower()
             .attr("class", "panel")
             .attr("id", "selectors")
             .attr("width", this.widthColumn1)
