@@ -5,6 +5,8 @@
 
 This is the repository to our project of IGR204. The goal is to create interactable visualizations around the names of french babies between 1900 and 2019.
 
+An online deployment of the application is available here: https://barthpaleologue.github.io/BirthNameViz/dist/
+
 ![Interactive map](image.png)
 
 ## Links for json maps
