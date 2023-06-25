@@ -202,7 +202,8 @@ export class InteractiveMap {
                 const bestFemaleName = bestFemaleNames[i];
 
                 return this.nameToColor.get(this.coloredSex === Sex.Male ? bestMaleName : bestFemaleName) as string;
-            });
+            })
+            .style("stroke", "white");
 
 
 
@@ -257,7 +258,7 @@ export class InteractiveMap {
                 return colorScale(normalizedPopularities[i]);
             })
             .style("stroke", function (d: Region, i: number) {
-                return rankings[i][0] === null ? "black" : "white";
+                return rankings[i][0] === null ? "grey" : "white";
             });
 
         d3.selectAll(".region-label")

@@ -114,7 +114,7 @@ export class PopularityGraph {
                     .style("position", "absolute")
                     .style("left", (e.pageX + 10) + "px")
                     .style("top", (e.pageY - 10) + "px")
-                    .text(`${d[0]}: ${d[1].toFixed(1)}%`);
+                    .text(`${d[0]}: ${d[1].toFixed(2)}%`);
             })
 
         // when drag selecting a range of years, log the min and max year
