@@ -51,8 +51,7 @@ export class InteractiveMap {
 
         const projection = d3.geoConicConformal()
             .center([2.454071, 46.279229])
-            .fitSize([this.width, this.height], regions as any)
-            .scale(4500)
+            .fitSize([this.width - 40, this.height - 40], regions as any)
             .translate([this.width / 2, this.height / 2]);
 
         path.projection(projection);
@@ -133,6 +132,24 @@ export class InteractiveMap {
 
         // Exit
         this.regionContainers.exit().remove();
+        
+        d3.select("#buttonContainer").style("display", "flex");
+        d3.select("#maleButton")
+            .on("click", () => {
+                this.coloredSex = Sex.Male;
+                d3.select("#maleButton").classed("selected", true);
+                d3.select("#femaleButton").classed("selected", false);
+                this.updateBestNameRepresentation();
+            })
+            .classed("selected", true);
+        
+        d3.select("#femaleButton")
+            .on("click", () => {
+                this.coloredSex = Sex.Female;
+                d3.select("#maleButton").classed("selected", false);
+                d3.select("#femaleButton").classed("selected", true);
+                this.updateBestNameRepresentation();
+            });
     }
 
     updateYearRange(minYear: number, maxYear: number) {
@@ -202,9 +219,13 @@ export class InteractiveMap {
 
         if (this.filteredName === null && this.mode === MapMode.NamePopularity) {
             this.mode = MapMode.BestName;
+            d3.select("#buttonContainer")
+                .style("display", "flex");
             this.updateBestNameRepresentation();
         } else if (this.filteredName !== null && this.mode === MapMode.BestName) {
             this.mode = MapMode.NamePopularity;
+            d3.select("#buttonContainer")
+                .style("display", "none");
             this.updateNamePopularityRepresentation();
         } else if (this.filteredName !== null && this.mode === MapMode.NamePopularity) {
             this.updateNamePopularityRepresentation();
@@ -216,12 +237,6 @@ export class InteractiveMap {
 
         const rankings = regions.features.map((d: Region) => {
             const filteredDataset = this.dataset.filterByRegionAndYearRange(parseRegionName(d.properties.nom), this.minYear, this.maxYear);
-
-            /*const filteredByName = filteredDataset.filterByName(this.filteredName as string);
-
-            const accrossYears = filteredByName.aggregateByYear();
-
-            const summedPopularity = accrossYears.reduce((acc, cur) => acc + cur.nombre, 0);*/
 
             return filteredDataset.getRankingOfName(this.filteredName as string);
         });
@@ -240,6 +255,9 @@ export class InteractiveMap {
             .data(regions.features)
             .style("fill", function (d: Region, i: number) {
                 return colorScale(normalizedPopularities[i]);
+            })
+            .style("stroke", function (d: Region, i: number) {
+                return rankings[i][0] === null ? "black" : "white";
             });
 
         d3.selectAll(".region-label")

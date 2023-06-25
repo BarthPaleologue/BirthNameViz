@@ -68,7 +68,7 @@ export class SliderSelector {
                             playButton.html("Play");
                         }
 
-                        this.setRange(newMin, newMax);
+                        this.setYearRange(newMin, newMax);
                     }, 1000);
 
                     playButton.html("Stop");
@@ -108,7 +108,7 @@ export class SliderSelector {
         this.leftPerSel.on("mouseup", this.mouseUpLeftHandler.bind(this));
         this.rightPerSel.on("mouseup", this.mouseUpRightHandler.bind(this));
 
-        this.setRange(minYear, maxYear);
+        this.setYearRange(minYear, maxYear);
 
         const nameInput = panel.append("div").attr("class", "nameInputContainer");
         nameInput.append("h2")
@@ -140,7 +140,7 @@ export class SliderSelector {
     }
 
     /*Update the slider to fit the specified range */
-    public setRange(min: number, max: number): void {
+    public setYearRange(min: number, max: number): void {
         const mid = Math.round(((max - min) / 2) + min);
         const frac = (mid - this.minYear) / (this.maxYear - this.minYear);
         this.updateWidth(frac);

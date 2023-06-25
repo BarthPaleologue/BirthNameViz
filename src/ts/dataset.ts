@@ -165,21 +165,21 @@ export class Dataset {
             }
             this.nationalNumberByYear?.set(row.annais, this.nationalNumberByYear?.get(row.annais) as number + row.nombre);
 
-            if(!this.regionalNumberByYearForName?.has(row.preusuel)) {
+            if (!this.regionalNumberByYearForName?.has(row.preusuel)) {
                 this.regionalNumberByYearForName?.set(row.preusuel, new Map());
             }
-            if(!this.regionalNumberByYearForName?.get(row.preusuel)?.has(row.region)) {
+            if (!this.regionalNumberByYearForName?.get(row.preusuel)?.has(row.region)) {
                 this.regionalNumberByYearForName?.get(row.preusuel)?.set(row.region, new Map());
             }
-            if(!this.regionalNumberByYearForName?.get(row.preusuel)?.get(row.region)?.has(row.annais)) {
+            if (!this.regionalNumberByYearForName?.get(row.preusuel)?.get(row.region)?.has(row.annais)) {
                 this.regionalNumberByYearForName?.get(row.preusuel)?.get(row.region)?.set(row.annais, 0);
             }
             this.regionalNumberByYearForName?.get(row.preusuel)?.get(row.region)?.set(row.annais, this.regionalNumberByYearForName?.get(row.preusuel)?.get(row.region)?.get(row.annais) as number + row.nombre);
 
-            if(!this.regionalNumberByYear?.has(row.region)) {
+            if (!this.regionalNumberByYear?.has(row.region)) {
                 this.regionalNumberByYear?.set(row.region, new Map());
             }
-            if(!this.regionalNumberByYear?.get(row.region)?.has(row.annais)) {
+            if (!this.regionalNumberByYear?.get(row.region)?.has(row.annais)) {
                 this.regionalNumberByYear?.get(row.region)?.set(row.annais, 0);
             }
             this.regionalNumberByYear?.get(row.region)?.set(row.annais, this.regionalNumberByYear?.get(row.region)?.get(row.annais) as number + row.nombre);
@@ -394,7 +394,7 @@ export class Dataset {
         const totalNumberByYear = this.nationalNumberByYear;
 
         const percentages = new Map<number, number>();
-        for(const [year, number] of nationalNumberByYear?.entries() ?? []) {
+        for (const [year, number] of nationalNumberByYear?.entries() ?? []) {
             const totalNumber = totalNumberByYear?.get(year) as number;
             percentages.set(year, number / totalNumber);
         }
@@ -413,9 +413,9 @@ export class Dataset {
         console.log(regionalTotalNumber);
 
         const percentages = new Map<RegionName, Map<number, number>>();
-        for(const [region, yearMap] of regionalNumber?.entries() ?? []) {
+        for (const [region, yearMap] of regionalNumber?.entries() ?? []) {
             const percentageMap = new Map<number, number>();
-            for(const [year, number] of yearMap.entries()) {
+            for (const [year, number] of yearMap.entries()) {
                 const totalNumber = regionalTotalNumber?.get(region)?.get(year) as number;
                 percentageMap.set(year, number / totalNumber);
             }

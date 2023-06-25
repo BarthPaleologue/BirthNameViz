@@ -10,8 +10,8 @@ export class PopularityGraph {
     private filteredName: string | null = null;
     private filteredRegion: RegionName | null = null;
 
-    private popularityByRegion: Map<RegionName, Map<number, number>> = new Map<RegionName, Map<number, number>>();
-    private popularityNational: Map<number, number> = new Map<number, number>();
+    private popularityByRegion: Map<RegionName, Map<number, number>> | null = null;
+    private popularityNational: Map<number, number> | null = null;
 
     private svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
 
@@ -24,16 +24,18 @@ export class PopularityGraph {
     private readonly width = (window.innerWidth - 70) / 2;
     private readonly height = 400;
 
+    private onYearRangeChangedCallbacks: ((minYear: number, maxYear: number) => void)[] = [];
+
     constructor(dataset: Dataset, minYear: number, maxYear: number) {
         this.dataset = dataset;
 
         this.minYear = minYear;
         this.maxYear = maxYear;
 
-        this.filteredName = "Jean";
+        this.filteredName = null;
 
-        this.popularityByRegion = this.dataset.getPercentageByRegionByYearForName(this.filteredName);
-        this.popularityNational = this.dataset.getNationalPercentageByYearForName(this.filteredName);
+        this.popularityByRegion = this.dataset.getPercentageByRegionByYearForName('Jean');
+        this.popularityNational = this.dataset.getNationalPercentageByYearForName('Jean');
 
         const years = Array.from(this.popularityNational.keys());
         const percentages = Array.from(this.popularityNational.values()).map((v) => v);
@@ -55,7 +57,7 @@ export class PopularityGraph {
         // We create the x axis
         this.x = d3.scaleLinear()
             .domain([MIN_YEAR, MAX_YEAR])
-            .range([0, this.width - 50]);
+            .range([50, this.width - 50]);
 
         // We create the y axis
         this.y = d3.scaleLinear()
@@ -70,7 +72,7 @@ export class PopularityGraph {
             .attr("x", (d, i) => this.x(years[i]))
             .attr("y", (d, i) => 350 - this.y(percentages[i]))
             .attr("width", 0.9 * 800 / (MAX_YEAR - MIN_YEAR))
-            .attr("height", (d, i) => this.y(percentages[i]))
+            .attr("height", (d, i) => this.filteredName ? this.y(percentages[i]) : 0)
             .attr("fill", (d, i) => (years[i] >= this.minYear && years[i] <= this.maxYear) ? "blue" : "grey");
 
         // Add the x axis and label
@@ -85,6 +87,7 @@ export class PopularityGraph {
 
         // Add the y axis and label, remove the domain line
         this.svg.append("g")
+            .attr("transform", `translate(50, 0)`)
             .call(d3.axisLeft(this.y).tickSize(0));
         this.svg.append("text")
             .attr("x", 0)
@@ -96,10 +99,10 @@ export class PopularityGraph {
         // Add the title
         this.svg.append("text")
             .attr("x", 400)
-            .attr("y", 20)
+            .attr("y", this.height / 2)
             .attr("class", "popularity-title")
             .attr("text-anchor", "middle")
-            .text(`Popularité du prénom ${this.filteredName}`);
+            .text(`Enter a name to see its popularity over time`);
 
         // Add a tooltip that displays the name when you hover over the rectanble
         this.svg.selectAll("rect")
@@ -111,14 +114,56 @@ export class PopularityGraph {
                     .style("position", "absolute")
                     .style("left", (e.pageX + 10) + "px")
                     .style("top", (e.pageY - 10) + "px")
-                    .attr("text-anchor", "middle")
-                    .text(this.filteredName + ": " + d[1].toFixed(2) + "%" + "année: " + d[0]);
+                    .text(`${d[0]}: ${d[1].toFixed(1)}%`);
             })
+
+        // when drag selecting a range of years, log the min and max year
+        this.svg.on("mousedown", (e: MouseEvent) => {
+            if (this.filteredName === null) return;
+
+            const x = e.offsetX;
+            const y = e.offsetY;
+
+            const rect = this.svg.append("rect")
+                .attr("x", x)
+                .attr("y", y)
+                .attr("width", 0)
+                .attr("height", 0)
+                .attr("fill", "grey")
+                .attr("opacity", 0.5);
+
+            const mousemove = (e: MouseEvent) => {
+                const x = e.offsetX;
+                const y = e.offsetY;
+
+                rect.attr("width", Math.max(0, x - parseInt(rect.attr("x"))))
+                    .attr("height", Math.max(0, y - parseInt(rect.attr("y"))));
+            }
+
+            const mouseup = (e: MouseEvent) => {
+                const x = e.offsetX;
+
+                const year1 = Math.floor(this.x.invert(parseInt(rect.attr("x"))));
+                const year2 = Math.floor(this.x.invert(x));
+
+                // this is a weakness, here the callback will trigger the selector that will change the year range here.
+                // this breaks encapsulation
+                // there should be an origin mechanism for callbacks to know where they come from so we would not fear loops
+                if (Math.abs(year1 - year2) > 0) this.dispatchYearRangeChanged(Math.min(year1, year2), Math.max(year1, year2));
+
+                rect.remove();
+                this.svg.on("mousemove", null);
+                this.svg.on("mouseup", null);
+            }
+
+            this.svg.on("mousemove", mousemove);
+            this.svg.on("mouseup", mouseup);
+        });
 
         // Remove the tooltip when you stop hovering over the rectangle
         this.svg.selectAll("rect")
             .on("mouseout", (e, d) => {
-                this.svg.select("#tooltip").remove();
+                d3.select("#tooltip").remove();
             });
     }
 
@@ -127,18 +172,27 @@ export class PopularityGraph {
         this.minYear = minYear;
         this.maxYear = maxYear;
 
+        if (this.filteredName === null) return;
+
         this.update();
     }
 
     filterByName(name: string | null) {
         if (this.filteredName === name) return;
-        if (name === null) this.filteredName = "Jean";
         else this.filteredName = name;
 
-        this.popularityByRegion = this.dataset.getPercentageByRegionByYearForName(this.filteredName);
-        this.popularityNational = this.dataset.getNationalPercentageByYearForName(this.filteredName);
+        if (this.filteredName === null) {
+            d3.select('.popularity-title')
+                .attr("y", this.height / 2)
+                .text("Enter a name to see its popularity over time");
+            d3.selectAll("rect")
+                .attr("height", 0);
+        } else {
+            this.popularityByRegion = this.dataset.getPercentageByRegionByYearForName(this.filteredName);
+            this.popularityNational = this.dataset.getNationalPercentageByYearForName(this.filteredName);
 
-        this.update();
+            this.update();
+        }
     }
 
     filterByRegion(region: RegionName | null) {
@@ -146,42 +200,53 @@ export class PopularityGraph {
         if (this.filteredRegion === region) return;
         this.filteredRegion = region;
 
+        if (this.filteredName === null) return;
+
         this.update();
     }
 
     private update() {
+        if (this.popularityByRegion === null) throw new Error("Popularity by region is null");
+        if (this.popularityNational === null) throw new Error("Popularity national is null");
+
         const popularity = this.filteredRegion === null ? this.popularityNational : this.popularityByRegion.get(this.filteredRegion);
-        if(popularity === undefined) throw new Error(`Could not get popularity for region ${this.filteredRegion}`);
+        if (popularity === undefined) throw new Error(`Could not get popularity for region ${this.filteredRegion}`);
 
         const years = Array.from(popularity.keys());
         const percentages = Array.from(popularity.values()).map((v) => v);
 
         // for years that are not in the dataset, we set the popularity to 0
-        for (let i = MIN_YEAR; i <= MAX_YEAR; i++) {
-            if (!years.includes(i)) {
-                years.push(i);
-                percentages.push(0);
-            }
+        for (let year = MIN_YEAR; year <= MAX_YEAR; year++) {
+            if (years.includes(year)) continue;
+            years.push(year);
+            percentages.push(0);
         }
 
         // normalize the percentages
         const maxPercentage = Math.max(...percentages);
-        percentages.forEach((v, i) => {
-            percentages[i] = 100 * v / maxPercentage;
-        });
+        percentages.forEach((v, i) => percentages[i] = 100 * v);
 
         const popularities = years.map((v, i) => [years[i], percentages[i]]);
 
         this.svg.selectAll("rect")
             .data(popularities)
             .attr("x", (d, i) => this.x(years[i]))
-            .attr("y", (d, i) => 350 - this.y(percentages[i]))
+            .attr("y", (d, i) => 350 - this.y(percentages[i] / maxPercentage))
             .attr("width", 0.9 * 800 / (MAX_YEAR - MIN_YEAR))
-            .attr("height", (d, i) => this.y(percentages[i]))
+            .attr("height", (d, i) => this.y(percentages[i] / maxPercentage))
             .attr("fill", (d, i) => (years[i] >= this.minYear && years[i] <= this.maxYear) ? "blue" : "grey");
 
         this.svg.select(".popularity-title")
+            .attr("y", 20)
             .text(`Popularité du prénom ${this.filteredName}`);
+    }
+
+    public addOnYearRangeChangedCallback(callback: (minYear: number, maxYear: number) => void) {
+        this.onYearRangeChangedCallbacks.push(callback);
+    }
+
+    public dispatchYearRangeChanged(minYear: number, maxYear: number) {
+        this.onYearRangeChangedCallbacks.forEach((callback) => callback(minYear, maxYear));
     }
 }
 

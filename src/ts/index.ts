@@ -31,6 +31,9 @@ selectors.addOnNameChangeCallback((name: string | null) => {
 selectors.addOnYearRangeChangeCallback((minYear: number, maxYear: number) => {
     histopopularity.setYearRange(minYear, maxYear);
 });
+histopopularity.addOnYearRangeChangedCallback((minYear: number, maxYear: number) => {
+    selectors.setYearRange(minYear, maxYear);
+});
 
 const map = new InteractiveMap(dataset, DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR);
 window.map = map;

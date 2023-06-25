@@ -1,12 +1,14 @@
 $border-radius: 5px;
 
+$accent-color: rgb(245, 245, 245);
+
 body {
     overflow: hidden;
     font-family: sans-serif;
 }
 
 .region {
-    stroke: rgb(255, 255, 255);
+    stroke: white;
     transition: .2s;
     cursor: pointer;
 
@@ -26,7 +28,7 @@ body {
 }
 
 .panel {
-    background: beige;
+    background: $accent-color;
     border-radius: $border-radius;
     box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
     padding: 10px;
@@ -163,21 +165,85 @@ body {
 
 #loader {
     position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-
+    top: 50vh;
+    width: 100%;
+    margin: -8px;
     text-align: center;
-    line-height: 100vh;
-
     font-family: sans-serif;
-    font-size: 200%;
+    background: linear-gradient(to right, #fff, $accent-color, #fff);
+    padding: 10px;
+    font-size: 300%;
+    padding: 20px 0;
+    color: black;
+    animation: progress 2s infinite;
 }
 
 rect {
     &:hover {
         fill: red;
         stroke: black;
+    }
+}
+
+#tooltip {
+    background-color: $accent-color;
+    border-radius: $border-radius;
+    padding: 10px;
+    box-shadow: 0 0 3px black;
+    pointer-events: none;
+
+    // left arrow
+    &::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: -10px;
+        margin-top: -10px;
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent;
+        border-right: 10px solid $accent-color;
+    }
+}
+
+text {
+    user-select: none;
+}
+
+#buttonContainer {
+    position: absolute;
+    display: none;
+    flex-direction: column;
+    top: 50%;
+    right: 40px;
+    row-gap: 10px;
+    transform: translateY(-50%);
+
+    div {
+        width: 40px;
+        height: 40px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        box-shadow: 0 0 3px black;
+        border-radius: $border-radius;
+        cursor: pointer;
+        transition: .2s;
+        background-color: rgba(255, 255, 255, 0.8);
+
+        &:hover {
+            scale: 1.05;
+        }
+
+        &.selected {
+            background-color: rgba(darken($accent-color, 20), 0.8);
+        }
+    }
+
+    #maleButton {
+        background-image: url(../assets/male.png);
+    }
+
+    #femaleButton {
+        background-image: url(../assets/female.png);
     }
 }
