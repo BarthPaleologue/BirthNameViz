@@ -9,6 +9,8 @@ An online deployment of the application is available here: https://barthpaleolog
 
 ![Interactive map](image.png)
 
+![Gender effect on names](image-1.png)
+
 ## Links for json maps
 
 https://github.com/gregoiredavid/france-geojson
