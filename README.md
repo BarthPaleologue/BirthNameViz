@@ -18,6 +18,18 @@ An online deployment of the application is available here: https://barthpaleolog
 
 Made with [contrib.rocks](https://contrib.rocks).
 
+## Build with NodeJS
+
+Once you have cloned the repository, you can install the dependencies with `npm install`.
+
+To build the project, you can use `npm run build`. This will create a `dist` folder with the compiled files.
+
+## Run with NodeJS
+
+To run the project, you can use `npm run serve:prod`. This will start a local server on port 8080.
+
+The development server can be started with `npm run serve`. This will start a local server on port 8080 with hot reload.
+
 ## Links for json maps
 
 https://github.com/gregoiredavid/france-geojson
