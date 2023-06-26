@@ -9,6 +9,14 @@ An online deployment of the application is available here: https://barthpaleolog
 
 ![Interactive map](image.png)
 
+## Team
+
+<a href="https://github.com/BarthPaleologue/BirthNameViz/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=BarthPaleologue/BirthNameViz" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
+
 ## Links for json maps
 
 https://github.com/gregoiredavid/france-geojson
